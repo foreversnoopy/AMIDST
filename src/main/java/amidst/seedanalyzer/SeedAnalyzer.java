@@ -29,6 +29,8 @@ public class SeedAnalyzer {
 	private String path;
 	private NamedBiomeList namedBiomes;
 	private MinecraftInterface minecraftInterface;
+	
+	private boolean stop;
 
 	public SeedAnalyzer(String path, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException {
 		this.path = path;
@@ -36,11 +38,7 @@ public class SeedAnalyzer {
 		this.minecraftInterface = minecraftInterface;
 	}
 
-	public Collection<FilterResults> run(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException,
-			UnknownBiomeIdException
-	{
-		Stopwatch stopwatch = new Stopwatch();
-
+	public Collection<FilterResults> analyzeSeeds(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException,	UnknownBiomeIdException {
 		HashMap<Integer, Filter> filters = new HashMap<Integer, Filter>();
 		Filter filter = new RegularBiomesFilter(namedBiomes);
 		filters.put(filter.getId(), filter);
@@ -50,27 +48,39 @@ public class SeedAnalyzer {
 		
 		HashMap<Integer, ArrayList<FilterResults>> allResults = new HashMap<Integer, ArrayList<FilterResults>>();
 		
-		for (long seed = startSeed; seed <= endSeed; seed++)
+		AmidstLogger.info("New work item: " + startSeed + " to " + endSeed +".");
+		
+		Stopwatch stopwatch = new Stopwatch();
+		
+		long analyzedCount = 0;
+		
+		long seed = startSeed;
+		
+		while (!stop && seed <= endSeed)
 		{
-			Collection<FilterResults> results = analyzeSeed(seed, filters.values(), 2048);
+			Collection<FilterResults> results = analyzeSeed(seed, 2048, filters.values());
 			
 			addResults(results, allResults, filters);
 			
+			analyzedCount++;
+			
 			reportProgress(seed);
+			
+			seed++;
 		}
 		
 		Collection<FilterResults> bestResults = getBestResults(allResults, filters);
 		
-		reportRunCompleted(startSeed, endSeed, stopwatch);
+		reportRunCompleted(analyzedCount, stopwatch);
 		
 		return bestResults;
 	}
 
-	private Collection<FilterResults> analyzeSeed(long seed, Collection<Filter> filters, int radius)	throws FileNotFoundException, UnsupportedEncodingException, IOException, MinecraftInterfaceException,
-			UnknownBiomeIdException
+	public Collection<FilterResults> analyzeSeed(long seed, int radius, Collection<Filter> filters) throws FileNotFoundException, UnsupportedEncodingException, IOException, MinecraftInterfaceException, UnknownBiomeIdException
 	{
 		MinecraftInterface.World world = minecraftInterface.createWorld(seed, WorldType.DEFAULT, "");
 		
+		// Quarter resolution, centered on (0, 0)
 		int[] biomeData = world.getBiomeData(Dimension.OVERWORLD, radius / -4, radius / -4, radius / 2, radius / 2, true, data -> {
 			return data.clone();
 		});
@@ -170,20 +180,6 @@ public class SeedAnalyzer {
 		{
 			outputStream.close();
 		}
-		/*
-		BmpImage bmp = new BmpImage();
-		bmp.image = image;
-		
-		FileOutputStream outputStream = new FileOutputStream(path + "\\"  + seed + ".bmp");
-		
-		try
-		{
-			BmpWriter.write(outputStream, bmp);
-		}
-		finally
-		{
-			outputStream.close();
-		}*/
 	}
 	
 	private void addResults(Collection<FilterResults> results,
@@ -205,8 +201,6 @@ public class SeedAnalyzer {
 			}
 			
 			resultsInFilter.add(result);
-			
-			
 		}
 	}
 	
@@ -249,7 +243,7 @@ public class SeedAnalyzer {
 		}
 	}
 	
-	private void reportRunCompleted(long startSeed, long endSeed, Stopwatch stopwatch)
+	private void reportRunCompleted(long analyzedCount, Stopwatch stopwatch)
 	{
 		// For some reason you can't do the rounding in one instruction. It won't round properly.
 		double elapsedTime = stopwatch.elapsedTime();
@@ -258,7 +252,7 @@ public class SeedAnalyzer {
 		
 		elapsedTime = elapsedTime / 10;
 		
-		long numberOfSeeds = Math.abs(endSeed - startSeed) + 1;
+		long numberOfSeeds = Math.abs(analyzedCount);
 		
 		double rate = numberOfSeeds / elapsedTime;
 		
@@ -267,5 +261,10 @@ public class SeedAnalyzer {
 		rate = rate / 10;
 		
 		AmidstLogger.info("Run completed : " + numberOfSeeds + " seeds in " + elapsedTime + " seconds (" + rate + " seeds per second)");
+	}
+
+	public void stop()
+	{
+		this.stop = true;
 	}
 }

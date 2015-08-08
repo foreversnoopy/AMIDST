@@ -2,7 +2,6 @@ package amidst.seedanalyzer;
 
 import java.io.IOException;
 import java.util.Collection;
-
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -16,6 +15,8 @@ public class DistributedSeedAnalyzer {
 
 	private String path;
 	private String serverAddress;
+	
+	private boolean stop;
 
 	private MinecraftInterface minecraftInterface;
 
@@ -28,14 +29,14 @@ public class DistributedSeedAnalyzer {
 		Unirest.setObjectMapper(new JsonDateObjectMapper());
 	}
 
-	public void run() throws UnirestException, IOException, InterruptedException, UnknownBiomeIdException
+	public void analyzeSeeds() throws UnirestException, IOException, InterruptedException, UnknownBiomeIdException
 	{
 		SeedAnalyzer seedAnalyser = new SeedAnalyzer(this.path, this.minecraftInterface);
 		
 		String urlPostWorkItems = "http://" + this.serverAddress + "/api/workitems/";
 		String urlNewWorkItems = "http://" + this.serverAddress + "/api/workitems/new";
 		
-		while (true)
+		while (!stop)
 		{
 			try
 			{
@@ -43,9 +44,7 @@ public class DistributedSeedAnalyzer {
 				
 				WorkItem workItem = bookResponse.getBody();
 				
-				AmidstLogger.info("New work item: " + workItem.StartSeed + " to " + workItem.EndSeed + " (clientId=" + workItem.ClientId + ")");
-				
-				Collection<FilterResults> bestSeeds = seedAnalyser.run(workItem.StartSeed, workItem.EndSeed);
+				Collection<FilterResults> bestSeeds = seedAnalyser.analyzeSeeds(workItem.StartSeed, workItem.EndSeed);
 				
 				for(FilterResults results : bestSeeds)
 				{
@@ -65,13 +64,22 @@ public class DistributedSeedAnalyzer {
 			catch (Exception e)
 			{
 				AmidstLogger.warn(e, "Error in distributed seed analyzer client. Retrying in 5 seconds.");
-				Thread.sleep(4000);
+				Thread.sleep(5000);
 			}
 		}
 	}
 	
-	public void close() throws IOException
+	public void stop()
 	{
-		Unirest.shutdown();
+		this.stop = true;
+		
+		try
+		{
+			Unirest.shutdown();
+		}
+		catch (IOException e)
+		{
+			AmidstLogger.warn(e);
+		}
 	}
 }

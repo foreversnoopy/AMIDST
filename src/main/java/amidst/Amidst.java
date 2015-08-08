@@ -23,8 +23,9 @@ import amidst.logging.FileLogger;
 import amidst.mojangapi.file.*;
 import amidst.mojangapi.minecraftinterface.*;
 import amidst.mojangapi.world.WorldSeed;
-import amidst.seedanalyzer.DistributedSeedAnalyzer;
-import amidst.seedanalyzer.SeedAnalyzer;
+import amidst.seedanalyzer.RunnableDistributedSeedAnalyzer;
+import amidst.seedanalyzer.RunnableSeedAnalyzer;
+import amidst.seedanalyzer.ThreadedSeedAnalyzer;
 import amidst.util.OperatingSystemDetector;
 
 @NotThreadSafe
@@ -123,7 +124,7 @@ public class Amidst {
 		return new AmidstSettings(Preferences.userNodeForPackage(Amidst.class));
 	}
 
-	/**
+/**
 	 * WARNING: This method MUST be invoked before applyLookAndFeel(). The
 	 * sun.java2d.* properties have no effect after applyLookAndFeel() has
 	 * been called.
@@ -158,7 +159,7 @@ public class Amidst {
 	}
 
 	private static void applyLookAndFeel(AmidstSettings settings) {
-    	settings.lookAndFeel.get().tryApply();
+		settings.lookAndFeel.get().tryApply();
 	}
 
 	private static void startApplication(
@@ -175,46 +176,63 @@ public class Amidst {
 			AmidstSettings settings) {
 		try {
 			if (parameters.seedAnalyzer && parameters.minecraftJarFile != null && parameters.seedHistoryFile != null) {
-				MinecraftInstallation minecraftInstallation = MinecraftInstallation
-					.newLocalMinecraftInstallation(parameters.dotMinecraftDirectory);
-					
-				Optional<LauncherProfile> preferredLauncherProfile = parameters.getInitialLauncherProfile(minecraftInstallation);
-
-				if (preferredLauncherProfile.isPresent()) {
-					MinecraftInterface minecraftInterface = MinecraftInterfaces.fromLocalProfile(preferredLauncherProfile.get());
-
-					if (parameters.distributed != null) {
-						new DistributedSeedAnalyzer(
-							parameters.seedHistoryFile.toAbsolutePath().toString(),
-							parameters.distributed,
-							minecraftInterface)
-							.run();
-					}
-					else
-					{
-						if (parameters.initialSeed == null) {
-							parameters.initialSeed = WorldSeed.fromSaveGame(0);
-						}
-
-						new SeedAnalyzer(parameters.seedHistoryFile.toAbsolutePath().toString(), minecraftInterface)
-							.run(parameters.initialSeed.getLong(), parameters.initialSeed.getLong() + 1000);
-					}
-				}
-				else {
-					throw new Exception("Launcher profile not found.");
-				}
-			}
-			else {
+				startSeedAnalyzer(parameters);
+			} else {
 				applyLookAndFeel(settings);
 				new PerApplicationInjector(parameters, metadata, settings).getApplication().run();
 			}
 		} catch (DotMinecraftDirectoryNotFoundException e) {
 			AmidstLogger.warn(e);
-			AmidstMessageBox.displayError(
-					"Please install Minecraft",
+			AmidstMessageBox.displayError("Please install Minecraft",
 					"Amidst is not able to find your '.minecraft' directory, but it requires a working Minecraft installation.");
 		} catch (Exception e) {
 			handleCrash(e, Thread.currentThread());
+		}
+	}
+
+	private static void startSeedAnalyzer(CommandLineParameters parameters)
+			throws Exception {
+		MinecraftInstallation minecraftInstallation = MinecraftInstallation
+			.newLocalMinecraftInstallation(parameters.dotMinecraftDirectory);
+			
+		Optional<LauncherProfile> preferredLauncherProfile = parameters.getInitialLauncherProfile(minecraftInstallation);
+
+		if (preferredLauncherProfile.isPresent()) {
+			MinecraftInterface minecraftInterface = MinecraftInterfaces.fromLocalProfile(preferredLauncherProfile.get());
+
+			ThreadedSeedAnalyzer seedAnalyzer;
+
+			if (parameters.distributed != null) {
+				seedAnalyzer = new RunnableDistributedSeedAnalyzer(
+					parameters.seedHistoryFile.toAbsolutePath().toString(),
+					parameters.distributed,
+					minecraftInterface);
+			}
+			else {
+				if (parameters.initialSeed == null) {
+					parameters.initialSeed = WorldSeed.fromSaveGame(0);
+				}
+
+				seedAnalyzer = new RunnableSeedAnalyzer(
+					parameters.seedHistoryFile.toAbsolutePath().toString(),
+					parameters.initialSeed.getLong(),
+					parameters.initialSeed.getLong() + 1000,
+					minecraftInterface);
+			}
+
+			new Thread(seedAnalyzer).start();
+
+			while (System.in.read() == 0)
+			{
+				Thread.sleep(1000);
+			}
+
+			seedAnalyzer.stop();
+
+			System.out.println("Stop signal sent. Please wait for the end of the current work item. You may terminate the program now but you will lose some progress in your analysis.");
+		}
+		else {
+			throw new Exception("Launcher profile not found.");
 		}
 	}
 
