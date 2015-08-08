@@ -16,6 +16,7 @@ import amidst.mojangapi.minecraftinterface.MinecraftInterface;
 import amidst.mojangapi.minecraftinterface.MinecraftInterfaceException;
 import amidst.mojangapi.world.*;
 import amidst.mojangapi.world.biome.*;
+import amidst.seedanalyzer.filters.AllBiomeGroupsFilter;
 import amidst.seedanalyzer.filters.Filter;
 import amidst.seedanalyzer.filters.RegularBiomesFilter;
 import amidst.seedanalyzer.filters.SpecialBiomesFilter;
@@ -38,12 +39,15 @@ public class SeedAnalyzer {
 		this.minecraftInterface = minecraftInterface;
 	}
 
-	public Collection<FilterResults> analyzeSeeds(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException,	UnknownBiomeIdException {
+	public Collection<FilterResults> analyzeSeeds(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException {
 		HashMap<Integer, Filter> filters = new HashMap<Integer, Filter>();
 		Filter filter = new RegularBiomesFilter(namedBiomes);
 		filters.put(filter.getId(), filter);
 		
 		filter = new SpecialBiomesFilter(namedBiomes);
+		filters.put(filter.getId(), filter);
+		
+		filter = new AllBiomeGroupsFilter(namedBiomes);
 		filters.put(filter.getId(), filter);
 		
 		HashMap<Integer, ArrayList<FilterResults>> allResults = new HashMap<Integer, ArrayList<FilterResults>>();
@@ -101,15 +105,22 @@ public class SeedAnalyzer {
 		
 		for(FilterResults result : results)
 		{
-			criteriaMet = criteriaMet | result.CriteriaMet;
+			//criteriaMet = criteriaMet | result.CriteriaMet;
+			
+			if (result.CriteriaMet)
+			{
+				saveBiomeAnalysis(seed, result.FilterId, biomesSum, biomeData.length);
+				
+				saveScreenshot(seed, result.FilterId, biomeData, radius);
+			}
 		}
 		
-		if (criteriaMet)
+		/*if (criteriaMet)
 		{
 			saveBiomeAnalysis(seed, biomesSum, biomeData.length);
 			
 			saveScreenshot(seed, biomeData, radius);
-		}
+		}*/
 		
 		return results;
 	}
@@ -126,9 +137,16 @@ public class SeedAnalyzer {
 		return biomesSum;
 	}
 
-	private void saveBiomeAnalysis(long seed, int[] biomesSum, int divisor)	throws FileNotFoundException, UnsupportedEncodingException
+	private void saveBiomeAnalysis(long seed, int filterId, int[] biomesSum, int divisor) throws FileNotFoundException, UnsupportedEncodingException
 	{
-		File f = new File(path + File.separator + seed + ".txt");
+		File d = new File(path + "\\" + filterId + "\\");
+		
+		if (!d.exists())
+		{
+			d.mkdirs();
+		}
+		
+		File f = new File(d.getAbsolutePath() + "\\" + seed + ".txt");
 
 		PrintWriter writer = new PrintWriter(f, "UTF-8");
 		
@@ -144,14 +162,20 @@ public class SeedAnalyzer {
 		writer.close();
 	}
 
-	private void saveScreenshot(long seed, int[] biomeData, int radius) throws FileNotFoundException, IOException,
-			UnknownBiomeIdException
+	private void saveScreenshot(long seed, int filterId, int[] biomeData, int radius) throws FileNotFoundException, IOException, UnknownBiomeIdException
 	{
+		File d = new File(path + File.separator + filterId + File.separator);
+		
+		if (!d.exists())
+		{
+			d.mkdirs();
+		}
+		
+		FileOutputStream outputStream = new FileOutputStream(d.getAbsolutePath() + File.separator + seed + ".png");
+		
 		MinecraftMapRgbImage image = new MinecraftMapRgbImage(biomeData, radius);
-	
+		
 		ImageInfo imageInfo = new ImageInfo(radius / 2, radius / 2, 8, false); // 8 bits per channel, no alpha
-
-		FileOutputStream outputStream = new FileOutputStream(path + File.separator + seed + ".png");
 		
         PngWriter png = new PngWriter(outputStream, imageInfo);
         

@@ -1,51 +1,50 @@
 package amidst.seedanalyzer.filters;
 
-import amidst.mojangapi.world.biome.*;
-import amidst.seedanalyzer.*;
-
 import java.util.ArrayList;
+import java.util.Collection;
+
+import amidst.mojangapi.world.biome.Biome;
+import amidst.seedanalyzer.FilterResults;
+import amidst.seedanalyzer.NamedBiomeList;
 
 public class RegularBiomesFilter extends Filter
 {
-	private final ArrayList<Biome> biomesList;
-	
-	private final Biome[] biomes;
-	
+	private Collection<Biome> allBiomes;
+
 	public RegularBiomesFilter(NamedBiomeList namedBiomes)
 	{
-		this.biomesList = new ArrayList<Biome>();
+		super(getBiomesInFilter(namedBiomes));
 		
-		biomesList.add(namedBiomes.mesa);
-		biomesList.add(namedBiomes.savanna);
-		biomesList.add(namedBiomes.jungle);
-		biomesList.add(namedBiomes.megaTaiga);
-		biomesList.add(namedBiomes.forest);
-		biomesList.add(namedBiomes.birchForest);
-		biomesList.add(namedBiomes.roofedForest);
-		biomesList.add(namedBiomes.extremeHills);
-		biomesList.add(namedBiomes.taiga);
-		biomesList.add(namedBiomes.coldTaiga);
-		biomesList.add(namedBiomes.icePlains);
-		biomesList.add(namedBiomes.plains);
-		biomesList.add(namedBiomes.desert);
-		biomesList.add(namedBiomes.swampland);
-		biomesList.add(namedBiomes.ocean);
-		biomesList.add(namedBiomes.deepOcean);
-		biomesList.add(namedBiomes.beach);
-		biomesList.add(namedBiomes.river);
-		biomesList.add(namedBiomes.mushroomIsland);
-		
-		this.biomes = new Biome[biomesList.size()];
-		
-		biomesList.toArray(biomes);
+		this.allBiomes = new AllBiomeGroupsFilter(namedBiomes).getBiomes();
 	}
 	
-	@SuppressWarnings("unchecked")
-	public ArrayList<Biome> getBiomes()
+	private static ArrayList<Biome> getBiomesInFilter(NamedBiomeList namedBiomes)
 	{
-		return (ArrayList<Biome>)this.biomesList.clone();
+		ArrayList<Biome> biomes = new ArrayList<Biome>();
+		
+		biomes.add(namedBiomes.mesa);
+		biomes.add(namedBiomes.savanna);
+		biomes.add(namedBiomes.jungle);
+		biomes.add(namedBiomes.megaTaiga);
+		biomes.add(namedBiomes.forest);
+		biomes.add(namedBiomes.birchForest);
+		biomes.add(namedBiomes.roofedForest);
+		biomes.add(namedBiomes.extremeHills);
+		biomes.add(namedBiomes.taiga);
+		biomes.add(namedBiomes.coldTaiga);
+		biomes.add(namedBiomes.icePlains);
+		biomes.add(namedBiomes.plains);
+		biomes.add(namedBiomes.desert);
+		biomes.add(namedBiomes.swampland);
+		biomes.add(namedBiomes.ocean);
+		biomes.add(namedBiomes.deepOcean);
+		biomes.add(namedBiomes.beach);
+		biomes.add(namedBiomes.river);
+		biomes.add(namedBiomes.mushroomIsland);
+		
+		return biomes;
 	}
-	
+
 	@Override
 	public int getId()
 	{
@@ -53,40 +52,18 @@ public class RegularBiomesFilter extends Filter
 	}
 
 	@Override
-	public FilterResults getResults(final int[] biomesSum)
+	public FilterResults getResults(int[] biomesSum)
 	{
-		final int missingBiomes = countMissingBiomes(biomesSum, this.biomes);
+		int missingBiomes = countMissingBiomes(biomesSum);
 		
-		final FilterResults results = new FilterResults();
+		int biomesCount = countBiomes(biomesSum, this.allBiomes);
+		
+		FilterResults results = new FilterResults();
 		
 		results.FilterId = getId();
-		results.Value = missingBiomes;
+		results.Value = biomesCount;
 		results.CriteriaMet = missingBiomes == 0;
 		
 		return results;
-	}
-
-	@Override
-	public int compare(final FilterResults resultA, final FilterResults resultB)
-	{
-		if (resultA.FilterId == resultB.FilterId && resultA.FilterId == getId())
-		{
-			if (resultA.Value < resultB.Value)
-			{
-				return -1;
-			}
-			else if (resultA.Value > resultB.Value)
-			{
-				return 1;
-			}
-			else
-			{
-				return 0;
-			}
-		}
-		else
-		{
-			return 1;
-		}
 	}
 }
