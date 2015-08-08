@@ -88,6 +88,19 @@ public class CommandLineParameters {
 	public volatile WorldSeed initialSeed;
 
 	@Option(
+	    name = "-seedanalyzer",
+	    usage = "start the batch seed analyser instead of the GUI"
+	)
+	public volatile boolean seedAnalyzer;
+
+	@Option(
+	    name = "-distributed",
+	    usage = "the batch seed analyzer will report it's result to a server",
+	    metaVar = "<string>"
+	)
+    public volatile String distributed;
+
+	@Option(
 	    name = "-world-type",
 	    handler = WorldTypeHandler.class,
 	    usage = "world type for the initial seed",

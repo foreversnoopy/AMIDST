@@ -3,6 +3,7 @@ package amidst;
 import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Optional;
 import java.util.prefs.Preferences;
 
 import javax.swing.SwingUtilities;
@@ -19,7 +20,11 @@ import amidst.gui.crash.CrashWindow;
 import amidst.logging.AmidstLogger;
 import amidst.logging.AmidstMessageBox;
 import amidst.logging.FileLogger;
-import amidst.mojangapi.file.DotMinecraftDirectoryNotFoundException;
+import amidst.mojangapi.file.*;
+import amidst.mojangapi.minecraftinterface.*;
+import amidst.mojangapi.world.WorldSeed;
+import amidst.seedanalyzer.DistributedSeedAnalyzer;
+import amidst.seedanalyzer.SeedAnalyzer;
 import amidst.util.OperatingSystemDetector;
 
 @NotThreadSafe
@@ -169,8 +174,40 @@ public class Amidst {
 			AmidstMetaData metadata,
 			AmidstSettings settings) {
 		try {
-			applyLookAndFeel(settings);
-			new PerApplicationInjector(parameters, metadata, settings).getApplication().run();
+			if (parameters.seedAnalyzer && parameters.minecraftJarFile != null && parameters.seedHistoryFile != null) {
+				MinecraftInstallation minecraftInstallation = MinecraftInstallation
+					.newLocalMinecraftInstallation(parameters.dotMinecraftDirectory);
+					
+				Optional<LauncherProfile> preferredLauncherProfile = parameters.getInitialLauncherProfile(minecraftInstallation);
+
+				if (preferredLauncherProfile.isPresent()) {
+					MinecraftInterface minecraftInterface = MinecraftInterfaces.fromLocalProfile(preferredLauncherProfile.get());
+
+					if (parameters.distributed != null) {
+						new DistributedSeedAnalyzer(
+							parameters.seedHistoryFile.toAbsolutePath().toString(),
+							parameters.distributed,
+							minecraftInterface)
+							.run();
+					}
+					else
+					{
+						if (parameters.initialSeed == null) {
+							parameters.initialSeed = WorldSeed.fromSaveGame(0);
+						}
+
+						new SeedAnalyzer(parameters.seedHistoryFile.toAbsolutePath().toString(), minecraftInterface)
+							.run(parameters.initialSeed.getLong(), parameters.initialSeed.getLong() + 1000);
+					}
+				}
+				else {
+					throw new Exception("Launcher profile not found.");
+				}
+			}
+			else {
+				applyLookAndFeel(settings);
+				new PerApplicationInjector(parameters, metadata, settings).getApplication().run();
+			}
 		} catch (DotMinecraftDirectoryNotFoundException e) {
 			AmidstLogger.warn(e);
 			AmidstMessageBox.displayError(
