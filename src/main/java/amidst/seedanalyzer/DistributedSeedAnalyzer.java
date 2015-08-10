@@ -17,7 +17,7 @@ import amidst.mojangapi.world.biome.UnknownBiomeIdException;
 import amidst.seedanalyzer.filters.FilterStatistics;
 
 public class DistributedSeedAnalyzer {
-	private static final int CLIENT_ID = 1;
+	private static final int CLIENT_ID = 2;
 
 	private String path;
 	private String serverAddress;
@@ -37,7 +37,7 @@ public class DistributedSeedAnalyzer {
 
 	public void analyzeSeeds() throws UnirestException, IOException, InterruptedException, UnknownBiomeIdException
 	{
-		SeedAnalyzer seedAnalyser = new SeedAnalyzer(this.path, 2048, this.minecraftInterface);
+		SeedAnalyzer seedAnalyser = new SeedAnalyzer(this.path, 1536, this.minecraftInterface);
 		
 		String urlNewWorkItems = "http://" + this.serverAddress + "/api/workitems/getnew";
 		

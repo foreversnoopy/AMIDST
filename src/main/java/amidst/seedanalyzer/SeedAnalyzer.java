@@ -87,7 +87,7 @@ public class SeedAnalyzer {
 		biomesAllForestTypes.addAll(namedBiomes.biomesTaiga.getBiomes());
 		biomesAllForestTypes.addAll(namedBiomes.biomesMegaTaiga.getBiomes());
 		
-		filter = new BiomeAreaFilter(100, biomesAllForestTypes, 60);
+		filter = new BiomeAreaFilter(100, biomesAllForestTypes, 55);
 		filters.put(filter.getId(), filter);
 		
 		
@@ -105,11 +105,11 @@ public class SeedAnalyzer {
 		
 		biomesHills.addAll(namedBiomes.biomesColl.stream().filter(b -> b.getName().contains("Hills")).collect(Collectors.toList()));
 		
-		filter = new BiomeAreaFilter(120, biomesHills, 30);
+		filter = new BiomeAreaFilter(120, biomesHills, 33);
 		filters.put(filter.getId(), filter);
 		
 		
-		filter = new BiomeAreaFilter(1000, namedBiomes.biomesBeach.getBiomes(), 10);
+		filter = new BiomeAreaFilter(1000, BiomeGroup.biomesBeach.getBiomes(), 5);
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(2000, namedBiomes.biomesBirchForest.getBiomes(), 15);
@@ -121,13 +121,13 @@ public class SeedAnalyzer {
 		filter = new BiomeAreaFilter(4000, BiomeGroup.biomesExtremeHills.getBiomes(), 25);
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(5000, namedBiomes.biomesForest.getBiomes(), 40);
+		filter = new BiomeAreaFilter(5000, BiomeGroup.biomesForest.getBiomes(), 30);
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(6000, namedBiomes.biomesIce.getBiomes(), 40);
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(7000, namedBiomes.biomesJungle.getBiomes(), 20);
+		filter = new BiomeAreaFilter(7000, BiomeGroup.biomesJungle.getBiomes(), 25);
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(8000, BiomeGroup.biomesMegaTaiga.getBiomes(), 20);
@@ -136,7 +136,7 @@ public class SeedAnalyzer {
 		filter = new BiomeAreaFilter(9000, BiomeGroup.biomesMesa.getBiomes(), 20);
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(10000, BiomeGroup.biomesMushroomIsland.getBiomes(), 2);
+		filter = new BiomeAreaFilter(10000, BiomeGroup.biomesMushroomIsland.getBiomes(), 1.5);
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(11000, namedBiomes.biomesOcean.getBiomes(), 80);
@@ -145,10 +145,10 @@ public class SeedAnalyzer {
 		filter = new BiomeAreaFilter(12000, namedBiomes.biomesPlains.getBiomes(), 25);
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(13000, namedBiomes.biomesRiver.getBiomes(), 10);
+		filter = new BiomeAreaFilter(13000, BiomeGroup.biomesRiver.getBiomes(), 5);
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(14000, namedBiomes.biomesRoofedForest.getBiomes(), 15);
+		filter = new BiomeAreaFilter(14000, BiomeGroup.biomesRoofedForest.getBiomes(), 12);
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(15000, namedBiomes.biomesSavanna.getBiomes(), 25);
@@ -157,7 +157,7 @@ public class SeedAnalyzer {
 		filter = new BiomeAreaFilter(16000, namedBiomes.biomesSwampland.getBiomes(), 15);
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(17000, namedBiomes.biomesTaiga.getBiomes(), 20);
+		filter = new BiomeAreaFilter(17000, BiomeGroup.biomesTaiga.getBiomes(), 25);
 		filters.put(filter.getId(), filter);
 	}
 
