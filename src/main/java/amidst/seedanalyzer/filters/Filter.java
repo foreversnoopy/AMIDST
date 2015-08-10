@@ -93,7 +93,7 @@ public abstract class Filter implements Comparator<FilterResults>
 	
 	public static double getTotalAreaPercentage(double[] biomesAreaPercentage, Collection<Biome> biomesInFilter)
 	{
-		int sum = 0;
+		double sum = 0;
 		
 		for(Biome biome : biomesInFilter)
 		{
