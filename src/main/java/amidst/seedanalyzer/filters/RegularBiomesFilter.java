@@ -1,7 +1,6 @@
 package amidst.seedanalyzer.filters;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 import amidst.mojangapi.world.biome.Biome;
 import amidst.seedanalyzer.FilterResults;
@@ -9,13 +8,10 @@ import amidst.seedanalyzer.NamedBiomeList;
 
 public class RegularBiomesFilter extends Filter
 {
-	private Collection<Biome> allBiomes;
-
 	public RegularBiomesFilter(NamedBiomeList namedBiomes)
 	{
 		super(getBiomesInFilter(namedBiomes));
-		
-		this.allBiomes = new AllBiomeGroupsFilter(namedBiomes).getBiomes();
+	
 	}
 	
 	private static ArrayList<Biome> getBiomesInFilter(NamedBiomeList namedBiomes)
@@ -52,17 +48,25 @@ public class RegularBiomesFilter extends Filter
 	}
 
 	@Override
-	public FilterResults getResults(int[] biomesSum)
+	public FilterResults getResults(int[] biomesSum, double[] biomesAreaPercentage, int allBiomesCount)
 	{
-		int missingBiomes = countMissingBiomes(biomesSum);
-		
-		int biomesCount = countBiomes(biomesSum, this.allBiomes);
+		int biomesCount = countBiomes(biomesSum);
+		int numberOfBiomesInFilter = getNumberOfBiomesInFilter();
 		
 		FilterResults results = new FilterResults();
 		
 		results.FilterId = getId();
 		results.Value = biomesCount;
-		results.CriteriaMet = missingBiomes == 0;
+		results.CriteriaMet = biomesCount == numberOfBiomesInFilter;
+
+		if (results.CriteriaMet)
+		{
+			results.Value = allBiomesCount - biomesCount; 
+		}
+		else
+		{
+			results.Value = biomesCount - numberOfBiomesInFilter;
+		}
 		
 		return results;
 	}

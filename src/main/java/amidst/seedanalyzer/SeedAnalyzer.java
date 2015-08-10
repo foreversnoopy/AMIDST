@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import amidst.logging.AmidstLogger;
 import amidst.mojangapi.minecraftinterface.MinecraftInterface;
@@ -17,7 +18,9 @@ import amidst.mojangapi.minecraftinterface.MinecraftInterfaceException;
 import amidst.mojangapi.world.*;
 import amidst.mojangapi.world.biome.*;
 import amidst.seedanalyzer.filters.AllBiomeGroupsFilter;
+import amidst.seedanalyzer.filters.BiomeAreaFilter;
 import amidst.seedanalyzer.filters.Filter;
+import amidst.seedanalyzer.filters.FilterStatistics;
 import amidst.seedanalyzer.filters.RegularBiomesFilter;
 import amidst.seedanalyzer.filters.SpecialBiomesFilter;
 import ar.com.hjg.pngj.ImageInfo;
@@ -31,17 +34,42 @@ public class SeedAnalyzer {
 	private NamedBiomeList namedBiomes;
 	private MinecraftInterface minecraftInterface;
 	
+	private HashMap<Integer, Filter> filters;
+	private HashMap<Integer, String> filterSavePaths = new HashMap<Integer, String>();
+	
+	private int radius;
+	private boolean saveResults;
+	
 	private boolean stop;
 
-	public SeedAnalyzer(String path, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException {
-		this.path = path;
+	public SeedAnalyzer(String path, int radius, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException {
 		this.namedBiomes = new NamedBiomeList();
 		this.minecraftInterface = minecraftInterface;
+		this.path = path + File.separator + "radius" + File.separator;
+		this.saveResults = (path != null && path != "");
+		this.radius = radius;
+		
+		createFilters();
+		
+		for(Filter filter : filters.values())
+		{
+			File d = new File(path + File.separator + radius + File.separator + filter.getId() + File.separator);
+			
+			if (!d.exists())
+			{
+				d.mkdirs();
+			}
+			
+			this.filterSavePaths.put(filter.getId(), d.getAbsolutePath());
+		}
 	}
 
-	public Collection<FilterResults> analyzeSeeds(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException {
-		HashMap<Integer, Filter> filters = new HashMap<Integer, Filter>();
+	private void createFilters()
+	{
+		this.filters = new HashMap<Integer, Filter>();
+		
 		Filter filter = new RegularBiomesFilter(namedBiomes);
+
 		filters.put(filter.getId(), filter);
 		
 		filter = new SpecialBiomesFilter(namedBiomes);
@@ -50,6 +78,90 @@ public class SeedAnalyzer {
 		filter = new AllBiomeGroupsFilter(namedBiomes);
 		filters.put(filter.getId(), filter);
 		
+		
+		ArrayList<Biome> biomesAllForestTypes = new ArrayList<Biome>();
+		
+		biomesAllForestTypes.addAll(namedBiomes.biomesBirchForest.getBiomes());
+		biomesAllForestTypes.addAll(namedBiomes.biomesForest.getBiomes());
+		biomesAllForestTypes.addAll(namedBiomes.biomesRoofedForest.getBiomes());
+		biomesAllForestTypes.addAll(namedBiomes.biomesTaiga.getBiomes());
+		biomesAllForestTypes.addAll(namedBiomes.biomesMegaTaiga.getBiomes());
+		
+		filter = new BiomeAreaFilter(100, biomesAllForestTypes, 60);
+		filters.put(filter.getId(), filter);
+		
+		
+		ArrayList<Biome> biomesArid = new ArrayList<Biome>();
+		
+		biomesArid.addAll(namedBiomes.biomesBeach.getBiomes());
+		biomesArid.addAll(namedBiomes.biomesDesert.getBiomes());
+		biomesArid.addAll(namedBiomes.biomesMesa.getBiomes());
+		
+		filter = new BiomeAreaFilter(110, biomesArid, 50);
+		filters.put(filter.getId(), filter);
+		
+		
+		ArrayList<Biome> biomesHills = new ArrayList<Biome>();
+		
+		biomesHills.addAll(namedBiomes.biomesColl.stream().filter(b -> b.getName().contains("Hills")).collect(Collectors.toList()));
+		
+		filter = new BiomeAreaFilter(120, biomesHills, 30);
+		filters.put(filter.getId(), filter);
+		
+		
+		filter = new BiomeAreaFilter(1000, namedBiomes.biomesBeach.getBiomes(), 10);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(2000, namedBiomes.biomesBirchForest.getBiomes(), 15);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(3000, namedBiomes.biomesDesert.getBiomes(), 40);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(4000, namedBiomes.biomesExtremeHills.getBiomes(), 20);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(5000, namedBiomes.biomesForest.getBiomes(), 40);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(6000, namedBiomes.biomesIce.getBiomes(), 40);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(7000, namedBiomes.biomesJungle.getBiomes(), 20);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(8000, namedBiomes.biomesMegaTaiga.getBiomes(), 15);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(9000, namedBiomes.biomesMesa.getBiomes(), 15);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(10000, namedBiomes.biomesMushroomIsland.getBiomes(), 5);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(11000, namedBiomes.biomesOcean.getBiomes(), 80);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(12000, namedBiomes.biomesPlains.getBiomes(), 25);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(13000, namedBiomes.biomesRiver.getBiomes(), 10);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(14000, namedBiomes.biomesRoofedForest.getBiomes(), 15);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(15000, namedBiomes.biomesSavanna.getBiomes(), 25);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(16000, namedBiomes.biomesSwampland.getBiomes(), 15);
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(17000, namedBiomes.biomesTaiga.getBiomes(), 20);
+		filters.put(filter.getId(), filter);
+	}
+
+	public SeedAnalysisResults analyzeSeeds(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException {
 		HashMap<Integer, ArrayList<FilterResults>> allResults = new HashMap<Integer, ArrayList<FilterResults>>();
 		
 		AmidstLogger.info("New work item: " + startSeed + " to " + endSeed +".");
@@ -62,7 +174,7 @@ public class SeedAnalyzer {
 		
 		while (!stop && seed <= endSeed)
 		{
-			Collection<FilterResults> results = analyzeSeed(seed, 2048, filters.values());
+			Collection<FilterResults> results = analyzeSeed(seed, this.radius, filters.values());
 			
 			addResults(results, allResults, filters);
 			
@@ -73,15 +185,59 @@ public class SeedAnalyzer {
 			seed++;
 		}
 		
-		Collection<FilterResults> bestResults = getBestResults(allResults, filters);
+		Collection<FilterStatistics> statistics = compileStatistics(allResults);
+		
+		Collection<FilterResults> filteredResults = getFilteredResults(allResults, filters);
 		
 		reportRunCompleted(analyzedCount, stopwatch);
 		
-		return bestResults;
+		SeedAnalysisResults seedAnalysisResults = new SeedAnalysisResults();
+		seedAnalysisResults.FilteredSeeds = filteredResults;
+		seedAnalysisResults.Statistics = statistics;
+		
+		return seedAnalysisResults;
+	}
+
+	private Collection<FilterStatistics> compileStatistics(HashMap<Integer, ArrayList<FilterResults>> allResults)
+	{
+		HashMap<Integer, FilterStatistics> statisticsByFilter = new HashMap<Integer, FilterStatistics>();
+		
+		for(Filter filter : filters.values())
+		{
+			Collection<FilterResults> resultsInFilter = allResults.get(filter.getId());
+			
+			FilterStatistics stats = new FilterStatistics();
+			stats.FilterId = filter.getId();
+			
+			double min = 999, max = -999, total = 0;
+			
+			for(FilterResults result : resultsInFilter)
+			{
+				min = Math.min(min, result.Value);
+				
+				if (result.Value > max)
+				{
+					max = result.Value;
+					stats.MaxValue = result.Value;
+					stats.MaxSeed = result.SeedId;
+				}
+				
+				total += result.Value;
+			}
+			
+			stats.MinValue = min;
+			stats.AvgValue = total / (double)resultsInFilter.size();
+			
+			statisticsByFilter.put(filter.getId(), stats);
+		}
+		
+		return statisticsByFilter.values();
 	}
 
 	public Collection<FilterResults> analyzeSeed(long seed, int radius, Collection<Filter> filters) throws FileNotFoundException, UnsupportedEncodingException, IOException, MinecraftInterfaceException, UnknownBiomeIdException
 	{
+		ArrayList<FilterResults> results = new ArrayList<FilterResults>();
+		
 		MinecraftInterface.World world = minecraftInterface.createWorld(seed, WorldType.DEFAULT, "");
 		
 		// Quarter resolution, centered on (0, 0)
@@ -89,73 +245,70 @@ public class SeedAnalyzer {
 			return data.clone();
 		});
 		
-		int[] biomesSum = sumBiomes(biomeData);
+		int[] biomesSum = getBiomesSum(biomeData);
 		
-		ArrayList<FilterResults> results = new ArrayList<FilterResults>();
+		double[] biomesAreaPercentage = getBiomesAreaPercentage(biomesSum, biomeData.length);
+		
+		int allBiomesCount = Filter.countBiomes(biomesSum, namedBiomes.biomesColl);
 		
 		for(Filter filter : filters)
 		{
-			FilterResults result = filter.getResults(biomesSum);
+			FilterResults result = filter.getResults(biomesSum, biomesAreaPercentage, allBiomesCount);
 			result.SeedId = seed;
+			
+			if (result.CriteriaMet)
+			{
+				AmidstLogger.info("Seed found matching filterId=" + filter.getId() + " : " + seed);
+
+				if (this.saveResults)
+				{
+					saveBiomeAnalysis(seed, filter.getId(), biomesAreaPercentage);
+					
+					saveScreenshot(seed, filter.getId(), biomeData, radius);
+				}
+			}
 			
 			results.add(result);
 		}
 		
-		boolean criteriaMet = false;
-		
-		for(FilterResults result : results)
-		{
-			//criteriaMet = criteriaMet | result.CriteriaMet;
-			
-			if (result.CriteriaMet)
-			{
-				saveBiomeAnalysis(seed, result.FilterId, biomesSum, biomeData.length);
-				
-				saveScreenshot(seed, result.FilterId, biomeData, radius);
-			}
-		}
-		
-		/*if (criteriaMet)
-		{
-			saveBiomeAnalysis(seed, biomesSum, biomeData.length);
-			
-			saveScreenshot(seed, biomeData, radius);
-		}*/
-		
 		return results;
 	}
 
-	private int[] sumBiomes(int[] biomeData)
+	private int[] getBiomesSum(int[] biomeData)
 	{
-		int[] biomesSum = new int[256];
+		int[] biomesSum = new int[1 + namedBiomes.biomesColl.stream().map(b -> b.getId()).max((id1, id2) -> Integer.compare(id1, id2)).get()];
 		
 		for (int i = 0; i < biomeData.length; i++)
 		{
 			biomesSum[biomeData[i]]++;
 		}
-		
+
 		return biomesSum;
 	}
-
-	private void saveBiomeAnalysis(long seed, int filterId, int[] biomesSum, int divisor) throws FileNotFoundException, UnsupportedEncodingException
+	
+	private double[] getBiomesAreaPercentage(int[] biomesSum, int totalArea)
 	{
-		File d = new File(path + "\\" + filterId + "\\");
+		double[] biomesAreaPercentage = new double[biomesSum.length];
 		
-		if (!d.exists())
+		for (int i = 0; i < biomesSum.length; i++)
 		{
-			d.mkdirs();
+			biomesAreaPercentage[i] = ((double)biomesSum[i] / (double)totalArea) * 100d;
 		}
 		
-		File f = new File(d.getAbsolutePath() + "\\" + seed + ".txt");
+		return biomesAreaPercentage;
+	}
 
-		PrintWriter writer = new PrintWriter(f, "UTF-8");
+	private void saveBiomeAnalysis(long seed, int filterId, double[] biomesAreaPercentage) throws IOException
+	{
+		File file = new File(this.filterSavePaths.get(filterId) + File.separator + seed + ".txt");
+
+		PrintWriter writer = new PrintWriter(file, "UTF-8");
 		
-		for(Biome b : namedBiomes.biomes.iterable())
+		for(Biome b : namedBiomes.biomesColl)
 		{
 			if (b != null)
 			{
-				writer.printf("%30s\t\t%3.2f%n", b.getName(), ((float)biomesSum[b.getId()]) / divisor * 100);
-				//writer.println();
+				writer.printf("%30s\t\t%3.2f%n", b.getName(), (float)biomesAreaPercentage[b.getId()]);
 			}
 		}
 		
@@ -164,14 +317,7 @@ public class SeedAnalyzer {
 
 	private void saveScreenshot(long seed, int filterId, int[] biomeData, int radius) throws FileNotFoundException, IOException, UnknownBiomeIdException
 	{
-		File d = new File(path + File.separator + filterId + File.separator);
-		
-		if (!d.exists())
-		{
-			d.mkdirs();
-		}
-		
-		FileOutputStream outputStream = new FileOutputStream(d.getAbsolutePath() + File.separator + seed + ".png");
+		FileOutputStream outputStream = new FileOutputStream(this.filterSavePaths.get(filterId) + File.separator + seed + ".png");
 		
 		MinecraftMapRgbImage image = new MinecraftMapRgbImage(biomeData, radius);
 		
@@ -228,7 +374,7 @@ public class SeedAnalyzer {
 		}
 	}
 	
-	private Collection<FilterResults> getBestResults(HashMap<Integer, ArrayList<FilterResults>> allResults,
+	private Collection<FilterResults> getFilteredResults(HashMap<Integer, ArrayList<FilterResults>> allResults,
 			HashMap<Integer, Filter> filters)
 	{
 		ArrayList<FilterResults> bestResults = new ArrayList<FilterResults>();
@@ -237,23 +383,7 @@ public class SeedAnalyzer {
 		{
 			ArrayList<FilterResults> resultsInFilter = resultsByFilter.getValue();
 			
-			Filter filter = filters.get(resultsByFilter.getKey());
-			
-			resultsInFilter.sort(filter);
-			
-			int i = 0;
-			boolean criteriaMet = true;
-			
-			while (i < resultsInFilter.size() && (criteriaMet || i < 100))
-			{
-				FilterResults best = resultsInFilter.get(i);
-				
-				criteriaMet = best.CriteriaMet;
-				
-				bestResults.add(best);
-				
-				i++;
-			}
+			bestResults.addAll(resultsInFilter.stream().filter(r -> r.CriteriaMet).collect(Collectors.toList()));
 		}
 		
 		return bestResults;
@@ -269,21 +399,14 @@ public class SeedAnalyzer {
 	
 	private void reportRunCompleted(long analyzedCount, Stopwatch stopwatch)
 	{
-		// For some reason you can't do the rounding in one instruction. It won't round properly.
-		double elapsedTime = stopwatch.elapsedTime();
-		
-		elapsedTime = Math.round(elapsedTime * 10);
-		
-		elapsedTime = elapsedTime / 10;
-		
+		double elapsedTime = Math.round(stopwatch.elapsedTime() * 10d) / 10d;
+
 		long numberOfSeeds = Math.abs(analyzedCount);
 		
 		double rate = numberOfSeeds / elapsedTime;
 		
-		rate = Math.round(rate * 10);
-		
-		rate = rate / 10;
-		
+		rate = Math.round(rate * 10d) / 10d;
+
 		AmidstLogger.info("Run completed : " + numberOfSeeds + " seeds in " + elapsedTime + " seconds (" + rate + " seeds per second)");
 	}
 

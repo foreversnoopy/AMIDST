@@ -217,6 +217,7 @@ public class Amidst {
 					parameters.seedHistoryFile.toAbsolutePath().toString(),
 					parameters.initialSeed.getLong(),
 					parameters.initialSeed.getLong() + 1000,
+					2048,
 					minecraftInterface);
 			}
 

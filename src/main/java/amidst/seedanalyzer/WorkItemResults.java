@@ -6,5 +6,5 @@ public class WorkItemResults
 {
 	public WorkItem WorkItem;
 	
-	public Collection<FilterResults> BestSeeds;
+	public Collection<FilterResults> FilteredSeeds;
 }

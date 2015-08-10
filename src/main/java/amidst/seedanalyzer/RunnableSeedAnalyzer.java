@@ -8,15 +8,15 @@ public class RunnableSeedAnalyzer extends SeedAnalyzer implements ThreadedSeedAn
 	private long startSeed = Long.MIN_VALUE;
 	private long endSeed = Long.MAX_VALUE;
 
-	public RunnableSeedAnalyzer(String path, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException
+	public RunnableSeedAnalyzer(String path, int radius, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException
 	{
-		super(path, minecraftInterface);
+		super(path, radius, minecraftInterface);
 	}
 	
-	public RunnableSeedAnalyzer(String path, long startSeed, long endSeed, MinecraftInterface minecraftInterface)
+	public RunnableSeedAnalyzer(String path, long startSeed, long endSeed, int radius, MinecraftInterface minecraftInterface)
 			throws UnknownBiomeIdException
 	{
-		super(path, minecraftInterface);
+		super(path, radius, minecraftInterface);
 		
 		this.startSeed = startSeed;
 		this.endSeed = endSeed;

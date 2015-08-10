@@ -14,7 +14,7 @@ public class SpecialBiomesFilter extends Filter
 		
 		ArrayList<Biome> regularBiomes = new RegularBiomesFilter(namedBiomes).getBiomes();
 		
-		for(Biome biome : namedBiomes.biomes.iterable())
+		for(Biome biome : namedBiomes.biomesColl)
 		{
 			if (biome != null)
 			{

@@ -8,14 +8,9 @@ import amidst.seedanalyzer.*;
 
 public class SpecialBiomesFilter extends Filter
 {
-	private ArrayList<Biome> biomes;
-	private Collection<Biome> allBiomes;
-	
 	public SpecialBiomesFilter(NamedBiomeList namedBiomes)
 	{
 		super(getBiomesInFilter(namedBiomes));
-		
-		this.allBiomes = new AllBiomeGroupsFilter(namedBiomes).getBiomes();
 	}
 	
 	private static ArrayList<Biome> getBiomesInFilter(NamedBiomeList namedBiomes)
@@ -24,13 +19,13 @@ public class SpecialBiomesFilter extends Filter
 		
 		Collection<Biome> regularBiomes = new RegularBiomesFilter(namedBiomes).getBiomes();
 		
-		for(Biome biome : namedBiomes.biomes.iterable())
+		for(Biome biome : namedBiomes.biomesColl)
 		{
 			if (biome != null)
 			{
 				String biomeName = biome.getName();
 
-                                if (!biomeName.contains("Frozen Ocean") &&
+                if (!biomeName.contains("Frozen Ocean") &&
 				    !regularBiomes.contains(biome))
 				{
 					biomes.add(biome);
@@ -46,26 +41,26 @@ public class SpecialBiomesFilter extends Filter
 	{
 		return 2;
 	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public Collection<Biome> getBiomes()
-	{
-		return (Collection<Biome>)this.biomes.clone();
-	}
 
 	@Override
-	public FilterResults getResults(int[] biomesSum)
+	public FilterResults getResults(int[] biomesSum, double[] biomesAreaPercentage, int allBiomesCount)
 	{
-		int missingBiomes = countMissingBiomes(biomesSum);
-		
-		int biomesCount = countBiomes(biomesSum, this.allBiomes);
+		int biomesCount = countBiomes(biomesSum);
+		int numberOfBiomesInFilter = getNumberOfBiomesInFilter();
 		
 		FilterResults results = new FilterResults();
 		
 		results.FilterId = getId();
-		results.Value = biomesCount;
-		results.CriteriaMet = missingBiomes <= 20;
+		results.CriteriaMet = (biomesCount - numberOfBiomesInFilter) >= -20;
+		
+		if (biomesCount == numberOfBiomesInFilter)
+		{
+			results.Value = allBiomesCount - biomesCount; 
+		}
+		else
+		{
+			results.Value = biomesCount - numberOfBiomesInFilter;
+		}
 		
 		return results;
 	}

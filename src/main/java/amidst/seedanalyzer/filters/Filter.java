@@ -12,20 +12,23 @@ public abstract class Filter implements Comparator<FilterResults>
 {
 	private ArrayList<Biome> biomesInFilter;
 	
-	@SuppressWarnings("unchecked")
-	protected Filter(ArrayList<Biome> biomesInFilter)
+	protected Filter(Collection<Biome> biomesInFilter)
 	{
-		this.biomesInFilter = (ArrayList<Biome>)biomesInFilter.clone();
+		this.biomesInFilter = new ArrayList<Biome>(biomesInFilter);
 	}
 	
 	public abstract int getId();
 	
-	public abstract FilterResults getResults(int[] biomesSum);
-	
-	@SuppressWarnings("unchecked")
-	public Collection<Biome> getBiomes()
+	public abstract FilterResults getResults(int[] biomesSum, double[] biomesAreaPercentage, int allBiomesCount);
+
+	public ArrayList<Biome> getBiomes()
 	{
-		return (Collection<Biome>)this.biomesInFilter.clone();
+		return new ArrayList<Biome>(biomesInFilter);
+	}
+	
+	public int getNumberOfBiomesInFilter()
+	{
+		return this.biomesInFilter.size();
 	}
 	
 	public int countBiomes(int[] biomesSum)
@@ -63,39 +66,38 @@ public abstract class Filter implements Comparator<FilterResults>
 	
 	public static int countMissingBiomes(int[] biomesSum, Collection<Biome> biomesInFilter)
 	{
-		int missingBiomes = 0;
-		
-		int i = 0;
-		
-		Iterator<Biome> iterator = biomesInFilter.iterator();
-		
-		while (iterator.hasNext() && i < biomesInFilter.size())
-		{
-			Biome biome = iterator.next();
-			
-			if (biomesSum[biome.getId()] <= 0)
-			{
-				missingBiomes++;
-			}
-			
-			i++;
-		}
-		
-		return missingBiomes;
+		return biomesInFilter.size() - countBiomes(biomesSum, biomesInFilter);
 	}
-	
+
 	public int getTotalArea(int[] biomesSum)
 	{
-		return countMissingBiomes(biomesSum, this.biomesInFilter);
+		return getTotalArea(biomesSum, this.biomesInFilter);
 	}
 	
-	public static double getTotalArea(int[] biomesSum, Collection<Biome> biomesInFilter)
+	public static int getTotalArea(int[] biomesSum, Collection<Biome> biomesInFilter)
 	{
-		double sum = 0;
+		int sum = 0;
 		
 		for(Biome biome : biomesInFilter)
 		{
 			sum += biomesSum[biome.getId()];
+		}
+		
+		return sum;
+	}
+	
+	public double getTotalAreaPercentage(double[] biomesAreaPercentage)
+	{
+		return getTotalAreaPercentage(biomesAreaPercentage, this.biomesInFilter);
+	}
+	
+	public static double getTotalAreaPercentage(double[] biomesAreaPercentage, Collection<Biome> biomesInFilter)
+	{
+		int sum = 0;
+		
+		for(Biome biome : biomesInFilter)
+		{
+			sum += biomesAreaPercentage[biome.getId()];
 		}
 		
 		return sum;
@@ -106,17 +108,32 @@ public abstract class Filter implements Comparator<FilterResults>
 	{
 		if (resultA.FilterId == resultB.FilterId && resultA.FilterId == getId())
 		{
-			if (resultA.Value < resultB.Value)
+			if (resultA.CriteriaMet && resultB.CriteriaMet)
+			{
+				return 0;
+			}
+			else if (resultA.CriteriaMet)
 			{
 				return -1;
 			}
-			else if (resultA.Value > resultB.Value)
+			else if (resultB.CriteriaMet)
 			{
 				return 1;
 			}
 			else
 			{
-				return 0;
+				if (resultA.Value > resultB.Value)
+				{
+					return -1;
+				}
+				else if (resultA.Value < resultB.Value)
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
 			}
 		}
 		else
