@@ -278,8 +278,8 @@ public class SeedAnalyzer {
 			spawn = CoordinatesInWorld.origin();
 		}
 
-		// Quarter resolution, centered on spawn or (0, 0)
-		int[] biomeData = world.getBiomeData(Dimension.OVERWORLD, ((int)spawn.getX() - radius) / 4, (int)(spawn.getY() - radius) / 4, radius / 2, radius / 2, true, data -> {
+		// Quarter resolution, centered on (0, 0)
+		int[] biomeData = world.getBiomeData(Dimension.OVERWORLD, radius / 4, radius / 4, radius / 2, radius / 2, true, data -> {
 			return data.clone();
 		});
 		
