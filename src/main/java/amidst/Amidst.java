@@ -208,7 +208,7 @@ public class Amidst {
 					parameters.distributed,
 					minecraftInterface);
 			}
-			else {
+			else if (parameters.radius > 0) {
 				if (parameters.initialSeed == null) {
 					parameters.initialSeed = WorldSeed.fromSaveGame(0);
 				}
@@ -217,8 +217,11 @@ public class Amidst {
 					parameters.seedHistoryFile.toAbsolutePath().toString(),
 					parameters.initialSeed.getLong(),
 					parameters.initialSeed.getLong() + 1000,
-					2048,
+					parameters.radius,
 					minecraftInterface);
+			}
+			else {
+				throw new Exception("Please specify -radius <radius> as an argument.");
 			}
 
 			new Thread(seedAnalyzer).start();

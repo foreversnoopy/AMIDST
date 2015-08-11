@@ -89,9 +89,16 @@ public class CommandLineParameters {
 
 	@Option(
 	    name = "-seedanalyzer",
-	    usage = "start the batch seed analyser instead of the GUI"
+	    usage = "start the batch seed analyser instead of the GUI (specify either -distributed or -seed and -radius)"
 	)
 	public volatile boolean seedAnalyzer;
+
+	@Option(
+	    name = "-radius",
+		usage = "-radius <radius>.",
+		metaVar = "<int>"
+	)
+	public volatile int radius;
 
 	@Option(
 	    name = "-distributed",
