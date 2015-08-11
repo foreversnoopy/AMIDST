@@ -13,6 +13,9 @@
 /logs
 /nbproject
 /build
+/target/
+/seeds/
+/minecraft/
 
 history.txt
 target/

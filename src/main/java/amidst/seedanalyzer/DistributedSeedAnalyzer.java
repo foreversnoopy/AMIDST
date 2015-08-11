@@ -50,6 +50,13 @@ public class DistributedSeedAnalyzer {
 				
 				WorkItem workItem = workItemResponse.getBody();
 				
+				if (workItem.ClientId != CLIENT_ID)
+				{
+					stop = true;
+					
+					AmidstLogger.crash("ERROR : Work item received for clientId=" + workItem.ClientId + " but this client ID is " + CLIENT_ID + ".");
+				}
+				
 				SeedAnalysisResults seedAnalysisResults = seedAnalyser.analyzeSeeds(workItem.StartSeed, workItem.EndSeed);
 				
 				//SeedAnalysisResults seedAnalysisResults = seedAnalyser.analyzeSeeds(-9223372036854773094l, -9223372036854773094l);
@@ -59,6 +66,7 @@ public class DistributedSeedAnalyzer {
 				WorkItemResults workItemResults = new WorkItemResults();
 				workItemResults.WorkItem = workItem;
 				workItemResults.FilteredSeeds = seedAnalysisResults.FilteredSeeds;
+				workItemResults.Statistics = seedAnalysisResults.Statistics;
 				
 				postResultsAndStatistics(workItemResults, seedAnalysisResults);
 			}
@@ -148,7 +156,7 @@ public class DistributedSeedAnalyzer {
 		});
 		
 		response = futureResponse.get();*/
-		
+		/*
 		response = Unirest.post(urlPostStatistics)
 				   .header("accept", "application/json")
 				   .header("Content-Type", "application/json")
@@ -158,7 +166,7 @@ public class DistributedSeedAnalyzer {
 		if (response.getStatus() != 204)
 		{
 			AmidstLogger.warn("HTTP POST error : " + response.getStatus() + " " + response.getStatusText());
-		}
+		}*/
 	}
 
 	private void assignClientId(SeedAnalysisResults seedAnalysisResults)
