@@ -175,7 +175,7 @@ public class Amidst {
 			AmidstMetaData metadata,
 			AmidstSettings settings) {
 		try {
-			if (parameters.seedAnalyzer && parameters.minecraftJarFile != null && parameters.seedHistoryFile != null) {
+			if (parameters.seedAnalyzer && parameters.minecraftJarFile != null) {
 				startSeedAnalyzer(parameters);
 			} else {
 				applyLookAndFeel(settings);

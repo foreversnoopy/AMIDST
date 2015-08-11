@@ -1,15 +1,11 @@
 package amidst.seedanalyzer;
 
 import amidst.mojangapi.minecraftinterface.*;
-import amidst.mojangapi.world.*;
 import amidst.mojangapi.world.biome.*;
 import amidst.mojangapi.world.versionfeatures.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class NamedBiomeList {
@@ -56,8 +52,8 @@ public class NamedBiomeList {
 
 	public final Collection<BiomeGroup> biomeGroups = new ArrayList<BiomeGroup>();
 
-    public NamedBiomeList() throws UnknownBiomeIdException {
-        biomesMap = DefaultBiomes.DEFAULT_BIOMES.getValue(RecognisedVersion._1_8, createVersionFeaturesBuilder().create(RecognisedVersion._1_8));
+    public NamedBiomeList(RecognisedVersion recognisedVersion, VersionFeatures versionFeatures) throws UnknownBiomeIdException {
+        biomesMap = DefaultBiomes.DEFAULT_BIOMES.getValue(recognisedVersion, versionFeatures);
 
         this.mesa = biomesMap.getById(DefaultBiomes.mesa);
 		this.savanna = biomesMap.getById(DefaultBiomes.savanna);
@@ -102,26 +98,4 @@ public class NamedBiomeList {
 
 		BiomeGroup.showExcludedBiomesInBiomeGroups(this);
     }
-
-    public VersionFeatures.Builder createVersionFeaturesBuilder()
-	{
-		final WorldOptions worldOptions = new WorldOptions(WorldSeed.fromSaveGame(0), WorldType.DEFAULT);
-
-		final MinecraftInterface.World minecraftWorld = new MockMinecraftWorld();
-
-		return DefaultVersionFeatures.builder(worldOptions, minecraftWorld);
-	}
-
-	public static class MockMinecraftWorld implements MinecraftInterface.World
-	{
-		@Override
-		public<T> T getBiomeData(final Dimension dimension, final int x, final int y, final int width, final int height, final boolean useQuarterResolution, final Function<int[], T> biomeDataMapper) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Set<Dimension> supportedDimensions() {
-			return EnumSet.allOf(Dimension.class);
-		}
-	}
 }

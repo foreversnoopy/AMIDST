@@ -8,8 +8,11 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import amidst.logging.AmidstLogger;
@@ -17,6 +20,8 @@ import amidst.mojangapi.minecraftinterface.MinecraftInterface;
 import amidst.mojangapi.minecraftinterface.MinecraftInterfaceException;
 import amidst.mojangapi.world.*;
 import amidst.mojangapi.world.biome.*;
+import amidst.mojangapi.world.coordinates.CoordinatesInWorld;
+import amidst.mojangapi.world.versionfeatures.*;
 import amidst.seedanalyzer.filters.AllBiomeGroupsFilter;
 import amidst.seedanalyzer.filters.BiomeAreaFilter;
 import amidst.seedanalyzer.filters.Filter;
@@ -33,215 +38,248 @@ public class SeedAnalyzer {
 	private String path;
 	private NamedBiomeList namedBiomes;
 	private MinecraftInterface minecraftInterface;
-	
+	private VersionFeatures versionFeatures;
+
 	private HashMap<Integer, Filter> filters;
 	private HashMap<Integer, String> filterSavePaths = new HashMap<Integer, String>();
-	
+
 	private int radius;
 	private boolean saveResults;
-	
+
 	private boolean stop;
 
 	public SeedAnalyzer(String path, int radius, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException {
-		this.namedBiomes = new NamedBiomeList();
+		this.versionFeatures = createVersionFeaturesBuilder().create(minecraftInterface.getRecognisedVersion());
+		this.namedBiomes = new NamedBiomeList(minecraftInterface.getRecognisedVersion(), versionFeatures);
 		this.minecraftInterface = minecraftInterface;
 		this.path = path + File.separator + "radius" + File.separator;
 		this.saveResults = (path != null && path != "");
 		this.radius = radius;
-		
+
 		createFilters();
-		
-		for(Filter filter : filters.values())
+
+		if (this.saveResults)
 		{
-			File d = new File(path + File.separator + radius + File.separator + filter.getId() + File.separator);
-			
-			if (!d.exists())
+			for(Filter filter : filters.values())
 			{
-				d.mkdirs();
+				File d = new File(path + File.separator + radius + File.separator + filter.getId() + File.separator);
+
+				if (!d.exists())
+				{
+					d.mkdirs();
+				}
+
+				this.filterSavePaths.put(filter.getId(), d.getAbsolutePath());
 			}
-			
-			this.filterSavePaths.put(filter.getId(), d.getAbsolutePath());
 		}
 	}
 
-	private void createFilters()
+	public VersionFeatures.Builder createVersionFeaturesBuilder()
 	{
+		return createVersionFeaturesBuilder(new MockMinecraftWorld());
+	}
+
+	public VersionFeatures.Builder createVersionFeaturesBuilder(MinecraftInterface.World world)
+	{
+		final WorldOptions worldOptions = new WorldOptions(WorldSeed.fromSaveGame(0), WorldType.DEFAULT);
+
+		final MinecraftInterface.World minecraftWorld = world;
+
+		return DefaultVersionFeatures.builder(worldOptions, minecraftWorld);
+	}
+
+	public static class MockMinecraftWorld implements MinecraftInterface.World
+	{
+		@Override
+		public<T> T getBiomeData(final Dimension dimension, final int x, final int y, final int width, final int height, final boolean useQuarterResolution, final Function<int[], T> biomeDataMapper) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Set<Dimension> supportedDimensions() {
+			return EnumSet.allOf(Dimension.class);
+		}
+	}
+
+	private void createFilters() {
 		this.filters = new HashMap<Integer, Filter>();
-		
+
 		Filter filter = new RegularBiomesFilter(namedBiomes);
 
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new SpecialBiomesFilter(namedBiomes);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new AllBiomeGroupsFilter(namedBiomes);
 		filters.put(filter.getId(), filter);
-		
-		
+
 		ArrayList<Biome> biomesAllForestTypes = new ArrayList<Biome>();
-		
+
 		biomesAllForestTypes.addAll(namedBiomes.biomesBirchForest.getBiomes());
 		biomesAllForestTypes.addAll(namedBiomes.biomesForest.getBiomes());
 		biomesAllForestTypes.addAll(namedBiomes.biomesRoofedForest.getBiomes());
 		biomesAllForestTypes.addAll(namedBiomes.biomesTaiga.getBiomes());
 		biomesAllForestTypes.addAll(namedBiomes.biomesMegaTaiga.getBiomes());
-		
+
 		filter = new BiomeAreaFilter(100, biomesAllForestTypes, 60);
 		filters.put(filter.getId(), filter);
-		
-		
+
 		ArrayList<Biome> biomesArid = new ArrayList<Biome>();
-		
+
 		biomesArid.addAll(namedBiomes.biomesBeach.getBiomes());
 		biomesArid.addAll(namedBiomes.biomesDesert.getBiomes());
 		biomesArid.addAll(namedBiomes.biomesMesa.getBiomes());
-		
+
 		filter = new BiomeAreaFilter(110, biomesArid, 55);
 		filters.put(filter.getId(), filter);
-		
-		
+
 		ArrayList<Biome> biomesHills = new ArrayList<Biome>();
-		
+
 		biomesHills.addAll(namedBiomes.biomesColl.stream().filter(b -> b.getName().contains("Hills")).collect(Collectors.toList()));
-		
+
 		filter = new BiomeAreaFilter(120, biomesHills, 40);
 		filters.put(filter.getId(), filter);
-		
-		
+
 		filter = new BiomeAreaFilter(1000, namedBiomes.biomesBeach.getBiomes(), 8);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(2000, namedBiomes.biomesBirchForest.getBiomes(), 20);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(3000, namedBiomes.biomesDesert.getBiomes(), 50);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(4000, namedBiomes.biomesExtremeHills.getBiomes(), 30);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(5000, namedBiomes.biomesForest.getBiomes(), 35);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(6000, namedBiomes.biomesIce.getBiomes(), 60);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(7000, namedBiomes.biomesJungle.getBiomes(), 35);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(8000, namedBiomes.biomesMegaTaiga.getBiomes(), 30);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(9000, namedBiomes.biomesMesa.getBiomes(), 35);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(10000, namedBiomes.biomesMushroomIsland.getBiomes(), 2);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(11000, namedBiomes.biomesOcean.getBiomes(), 85);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(12000, namedBiomes.biomesPlains.getBiomes(), 25);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(13000, namedBiomes.biomesRiver.getBiomes(), 5.7);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(14000, namedBiomes.biomesRoofedForest.getBiomes(), 14);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(15000, namedBiomes.biomesSavanna.getBiomes(), 34);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(16000, namedBiomes.biomesSwampland.getBiomes(), 20);
 		filters.put(filter.getId(), filter);
-		
+
 		filter = new BiomeAreaFilter(17000, namedBiomes.biomesTaiga.getBiomes(), 30);
 		filters.put(filter.getId(), filter);
 	}
 
 	public SeedAnalysisResults analyzeSeeds(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException {
 		HashMap<Integer, ArrayList<FilterResults>> allResults = new HashMap<Integer, ArrayList<FilterResults>>();
-		
+
 		AmidstLogger.info("New work item: " + startSeed + " to " + endSeed +".");
-		
+
 		Stopwatch stopwatch = new Stopwatch();
-		
+
 		long analyzedCount = 0;
-		
+
 		long seed = startSeed;
-		
+
 		while (!stop && seed <= endSeed)
 		{
 			Collection<FilterResults> results = analyzeSeed(seed, this.radius, filters.values());
-			
+
 			addResults(results, allResults, filters);
-			
+
 			analyzedCount++;
-			
+
 			reportProgress(seed);
-			
+
 			seed++;
 		}
-		
+
 		Collection<FilterStatistics> statistics = compileStatistics(allResults);
-		
+
 		Collection<FilterResults> filteredResults = getFilteredResults(allResults, filters);
-		
+
 		reportRunCompleted(analyzedCount, stopwatch);
-		
+
 		SeedAnalysisResults seedAnalysisResults = new SeedAnalysisResults();
 		seedAnalysisResults.FilteredSeeds = filteredResults;
 		seedAnalysisResults.Statistics = statistics;
-		
+
 		return seedAnalysisResults;
 	}
 
 	private Collection<FilterStatistics> compileStatistics(HashMap<Integer, ArrayList<FilterResults>> allResults)
 	{
 		HashMap<Integer, FilterStatistics> statisticsByFilter = new HashMap<Integer, FilterStatistics>();
-		
+
 		for(Filter filter : filters.values())
 		{
 			Collection<FilterResults> resultsInFilter = allResults.get(filter.getId());
-			
+
 			FilterStatistics stats = new FilterStatistics();
 			stats.FilterId = filter.getId();
-			
+
 			double min = 999, max = -999, total = 0;
-			
+
 			for(FilterResults result : resultsInFilter)
 			{
 				min = Math.min(min, result.Value);
-				
+
 				if (result.Value > max)
 				{
 					max = result.Value;
 					stats.MaxValue = result.Value;
 					stats.MaxSeed = result.SeedId;
 				}
-				
+
 				total += result.Value;
 			}
-			
+
 			stats.MinValue = min;
 			stats.AvgValue = total / (double)resultsInFilter.size();
-			
+
 			statisticsByFilter.put(filter.getId(), stats);
 		}
-		
+
 		return statisticsByFilter.values();
 	}
 
-	public Collection<FilterResults> analyzeSeed(long seed, int radius, Collection<Filter> filters) throws FileNotFoundException, UnsupportedEncodingException, IOException, MinecraftInterfaceException, UnknownBiomeIdException
+	public Collection<FilterResults> analyzeSeed(long seed, int radius, Collection<Filter> filters)	throws FileNotFoundException, UnsupportedEncodingException, IOException, MinecraftInterfaceException, UnknownBiomeIdException
 	{
 		ArrayList<FilterResults> results = new ArrayList<FilterResults>();
-		
+
 		MinecraftInterface.World world = minecraftInterface.createWorld(seed, WorldType.DEFAULT, "");
+
+		CoordinatesInWorld spawn = createVersionFeaturesBuilder(world).create(minecraftInterface.getRecognisedVersion()).get(FeatureKey.WORLD_SPAWN_ORACLE).get();
 		
-		// Quarter resolution, centered on (0, 0)
-		int[] biomeData = world.getBiomeData(Dimension.OVERWORLD, radius / -4, radius / -4, radius / 2, radius / 2, true, data -> {
+		if (spawn == null) {
+			spawn = CoordinatesInWorld.origin();
+		}
+
+		// Quarter resolution, centered on spawn or (0, 0)
+		int[] biomeData = world.getBiomeData(Dimension.OVERWORLD, ((int)spawn.getX() - radius) / 4, (int)(spawn.getY() - radius) / 4, radius / 2, radius / 2, true, data -> {
 			return data.clone();
 		});
 		
