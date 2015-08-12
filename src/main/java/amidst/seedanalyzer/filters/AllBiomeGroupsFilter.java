@@ -26,7 +26,7 @@ public class AllBiomeGroupsFilter extends Filter
 		{
 			int area = getTotalArea(biomesSum, biomeGroup.getBiomes());
 			
-			if (area < 2)
+			if (area < 2) // v1, v2 and v3 : 2
 			{
 				missingGroups++;
 			}

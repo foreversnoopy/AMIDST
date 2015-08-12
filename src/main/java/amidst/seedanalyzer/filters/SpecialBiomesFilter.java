@@ -8,9 +8,13 @@ import amidst.seedanalyzer.*;
 
 public class SpecialBiomesFilter extends Filter
 {
-	public SpecialBiomesFilter(NamedBiomeList namedBiomes)
+	private int minimum;
+
+	public SpecialBiomesFilter(int minimum, NamedBiomeList namedBiomes)
 	{
 		super(getBiomesInFilter(namedBiomes));
+        
+        this.minimum = minimum;
 	}
 	
 	private static ArrayList<Biome> getBiomesInFilter(NamedBiomeList namedBiomes)
@@ -51,7 +55,7 @@ public class SpecialBiomesFilter extends Filter
 		FilterResults results = new FilterResults();
 		
 		results.FilterId = getId();
-		results.CriteriaMet = (biomesCount - numberOfBiomesInFilter) >= -20;
+		results.CriteriaMet = (biomesCount - numberOfBiomesInFilter) >= this.minimum;
 		
 		if (biomesCount == numberOfBiomesInFilter)
 		{
