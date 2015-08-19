@@ -29,6 +29,7 @@ import amidst.seedanalyzer.filters.BiomeFilter;
 import amidst.seedanalyzer.filters.Filter;
 import amidst.seedanalyzer.filters.FilterStatistics;
 import amidst.seedanalyzer.filters.NumberOfBiomeGroupsFilter;
+import amidst.seedanalyzer.filters.NumberOfBiomesFilter;
 import amidst.seedanalyzer.filters.RegularBiomesFilter;
 import amidst.seedanalyzer.filters.SpecialBiomesFilter;
 import ar.com.hjg.pngj.ImageInfo;
@@ -122,6 +123,10 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4, id #5
+		filter = new NumberOfBiomesFilter(5, BiomeGroup.allBiomes, 42);
+		filters.put(filter.getId(), filter);
+		
+		// Added in v4, id #6
 		filter = new AllBiomeGroupsWithRareBiomes();
 		filters.put(filter.getId(), filter);
 		
@@ -169,7 +174,7 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(5100, Biome.flowerForest, 6); // v4 : 6
+		filter = new BiomeFilter(5100, Biome.flowerForest, 6.5); // v4 : 6.5
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(6000, BiomeGroup.biomesIce.getBiomes(), 83); // v1 : 40, v2 : 60, v3 : 82, v4 : 83
@@ -193,7 +198,7 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(9100, Biome.mesaBryce, 4.5); // v4 : 4.5
+		filter = new BiomeFilter(9100, Biome.mesaBryce, 5); // v4 : 5
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(10000, BiomeGroup.biomesMushroomIsland.getBiomes(), 6); // v1 and v2 : 2, v3 : 6, v4 : 6

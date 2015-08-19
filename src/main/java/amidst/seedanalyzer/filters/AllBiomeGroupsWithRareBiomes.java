@@ -24,7 +24,7 @@ public class AllBiomeGroupsWithRareBiomes extends AllBiomeGroupsFilter
 	@Override
 	public int getId()
 	{
-		return 5;
+		return 6;
 	}
 
 	@Override
