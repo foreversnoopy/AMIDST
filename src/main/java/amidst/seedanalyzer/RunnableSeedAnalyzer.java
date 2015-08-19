@@ -8,6 +8,8 @@ public class RunnableSeedAnalyzer extends SeedAnalyzer implements ThreadedSeedAn
 	private long startSeed = Long.MIN_VALUE;
 	private long endSeed = Long.MAX_VALUE;
 
+	private boolean isStopped;
+
 	public RunnableSeedAnalyzer(String path, int radius, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException
 	{
 		super(path, radius, minecraftInterface);
@@ -33,5 +35,13 @@ public class RunnableSeedAnalyzer extends SeedAnalyzer implements ThreadedSeedAn
 		{
 			AmidstLogger.warn("Seed analyzer error. \n" + e.toString());
 		}
-	};
+
+		this.isStopped = true;
+	}
+
+	@Override
+	public boolean isStopped()
+	{
+		return this.isStopped;
+	}
 }

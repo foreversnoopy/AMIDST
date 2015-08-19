@@ -2,7 +2,7 @@ package amidst.seedanalyzer.filters;
 
 import java.util.Collection;
 
-import amidst.minecraft.Biome;
+import amidst.mojangapi.world.biome.Biome;
 import amidst.seedanalyzer.FilterResults;
 
 public class NumberOfBiomesFilter extends Filter

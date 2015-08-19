@@ -1,24 +1,26 @@
 package amidst.seedanalyzer.filters;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import amidst.minecraft.Biome;
+import amidst.mojangapi.world.biome.Biome;
 import amidst.seedanalyzer.BiomeGroup;
 import amidst.seedanalyzer.FilterResults;
+import amidst.seedanalyzer.NamedBiomeList;
 
 public class AllBiomeGroupsWithRareBiomes extends AllBiomeGroupsFilter
 {
 	private List<Biome> extraBiomes;
 
-	public AllBiomeGroupsWithRareBiomes()
+	public AllBiomeGroupsWithRareBiomes(NamedBiomeList namedBiomes)
 	{
+		super(namedBiomes);
+		
 		this.extraBiomes = new ArrayList<Biome>();
 		
-		this.extraBiomes.add(Biome.icePlainsSpikes);
-		this.extraBiomes.add(Biome.mesaBryce);
-		this.extraBiomes.add(Biome.savannaPlateauM);
+		this.extraBiomes.add(namedBiomes.icePlainsSpikes);
+		this.extraBiomes.add(namedBiomes.mesaBryce);
+		this.extraBiomes.add(namedBiomes.savannaPlateauM);
 	}
 
 	@Override

@@ -39,7 +39,7 @@ public class DistributedSeedAnalyzer{
 	{
 		SeedAnalyzer seedAnalyser = new SeedAnalyzer(this.path, 1024, this.minecraftInterface); // v1: 2048, v2: 1536, v3, v4 : 1024
 		
-		String urlNewWorkItems = "http://" + this.serverAddress + "/api/workitems/getnew";
+		String urlNewWorkItems = "http://" + this.serverAddress + "/api/workitems/getnew/" + CLIENT_ID;
 		
 		while (!stop)
 		{
@@ -49,25 +49,27 @@ public class DistributedSeedAnalyzer{
 				
 				WorkItem workItem = workItemResponse.getBody();
 				
-				if (workItem.ClientId != CLIENT_ID)
+				if (workItem.ClientId == CLIENT_ID)
+				{
+					SeedAnalysisResults seedAnalysisResults = seedAnalyser.analyzeSeeds(workItem.StartSeed, workItem.EndSeed);
+					
+					//SeedAnalysisResults seedAnalysisResults = seedAnalyser.analyzeSeeds(-9223372036854773094l, -9223372036854773094l);
+					
+					assignClientId(seedAnalysisResults);
+					
+					WorkItemResults workItemResults = new WorkItemResults();
+					workItemResults.WorkItem = workItem;
+					workItemResults.FilteredSeeds = seedAnalysisResults.FilteredSeeds;
+					workItemResults.Statistics = seedAnalysisResults.Statistics;
+					
+					postResultsAndStatistics(workItemResults, seedAnalysisResults);
+				}
+				else
 				{
 					stop = true;
 					
-					AmidstLogger.crash("ERROR : Work item received for clientId=" + workItem.ClientId + " but this client ID is " + CLIENT_ID + ".");
+					System.out.println("ERROR : Work item received for clientId=" + workItem.ClientId + " but this client ID is " + CLIENT_ID + ". Please exit, upgrade and restart client.");
 				}
-				
-				SeedAnalysisResults seedAnalysisResults = seedAnalyser.analyzeSeeds(workItem.StartSeed, workItem.EndSeed);
-				
-				//SeedAnalysisResults seedAnalysisResults = seedAnalyser.analyzeSeeds(-9223372036854773094l, -9223372036854773094l);
-				
-				assignClientId(seedAnalysisResults);
-				
-				WorkItemResults workItemResults = new WorkItemResults();
-				workItemResults.WorkItem = workItem;
-				workItemResults.FilteredSeeds = seedAnalysisResults.FilteredSeeds;
-				workItemResults.Statistics = seedAnalysisResults.Statistics;
-				
-				postResultsAndStatistics(workItemResults, seedAnalysisResults);
 			}
 			catch (Exception e)
 			{
