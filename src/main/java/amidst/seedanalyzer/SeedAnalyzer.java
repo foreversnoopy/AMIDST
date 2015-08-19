@@ -121,7 +121,7 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4, id #5
-		filter = new NumberOfBiomesFilter(5, namedBiomes.biomesColl, 42);
+		filter = new NumberOfBiomesFilter(5, namedBiomes.biomesColl, 45); // v4 : 45
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4, id #6
@@ -172,14 +172,14 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(5100, namedBiomes.flowerForest, 6.5); // v4 : 6.5
+		filter = new BiomeFilter(5100, namedBiomes.flowerForest, 7.5); // v4 : 7.5
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(6000, namedBiomes.biomesIce.getBiomes(), 83); // v1 : 40, v2 : 60, v3 : 82, v4 : 83
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(6100, namedBiomes.icePlainsSpikes, 6.5); // v4 : 6.5
+		filter = new BiomeFilter(6100, namedBiomes.icePlainsSpikes, 9.5); // v4 : 9.5
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(7000, namedBiomes.biomesJungle.getBiomes(), 70); // v1 : 20, v2 : 35, v3 : 70, v4 : 70
@@ -189,14 +189,14 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(8100, namedBiomes.megaSpruceTaigaHills, 5); // v4 : 5
+		filter = new BiomeFilter(8100, namedBiomes.megaSpruceTaigaHills, 7); // v4 : 7
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(9000, namedBiomes.biomesMesa.getBiomes(), 68); // v1 : 20, v2 : 35, v3 : 68, v4 : 68
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(9100, namedBiomes.mesaBryce, 5); // v4 : 5
+		filter = new BiomeFilter(9100, namedBiomes.mesaBryce, 7); // v4 : 7
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(10000, namedBiomes.biomesMushroomIsland.getBiomes(), 6); // v1 and v2 : 2, v3 : 6, v4 : 6
@@ -209,7 +209,7 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(12100, namedBiomes.sunflowerPlains, 7.5); // v4 : 7.5
+		filter = new BiomeFilter(12100, namedBiomes.sunflowerPlains, 8); // v4 : 8
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(13000, namedBiomes.biomesRiver.getBiomes(), 6.5); // v1 : 10, v2 : 5.7, v3 : 6.5, v4 : 6.5
@@ -219,14 +219,14 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(14100, namedBiomes.roofedForestM, 4.5); // v4 : 4.5
+		filter = new BiomeFilter(14100, namedBiomes.roofedForestM, 5.5); // v4 : 5.5
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(15000, namedBiomes.biomesSavanna.getBiomes(), 49); // v1 : 25, v2 : 34, v3 : 49, v4 : 49
 		filters.put(filter.getId(), filter);
 		
 		// Added in v4
-		filter = new BiomeFilter(15100, namedBiomes.savannaPlateauM, 5.5); // v4 : 5.5
+		filter = new BiomeFilter(15100, namedBiomes.savannaPlateauM, 6); // v4 : 6
 		filters.put(filter.getId(), filter);
 		
 		filter = new BiomeAreaFilter(16000, namedBiomes.biomesSwampland.getBiomes(), 33); // v1 : 15, v2 : 20, v3 : 33, v4 : 33
