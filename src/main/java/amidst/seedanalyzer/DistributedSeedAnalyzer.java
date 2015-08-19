@@ -17,7 +17,7 @@ import amidst.mojangapi.world.biome.UnknownBiomeIdException;
 import amidst.seedanalyzer.filters.FilterStatistics;
 
 public class DistributedSeedAnalyzer{
-	private static final int CLIENT_ID = 3;
+	private static final int CLIENT_ID = 4;
 	
 	private String path;
 	private String serverAddress;
@@ -37,10 +37,9 @@ public class DistributedSeedAnalyzer{
 
 	public void analyzeSeeds() throws UnirestException, IOException, InterruptedException, UnknownBiomeIdException
 	{
-		SeedAnalyzer seedAnalyser = new SeedAnalyzer(this.path, 1024, this.minecraftInterface); // v1: 2048, v2: 1536, v3 : 1024
+		SeedAnalyzer seedAnalyser = new SeedAnalyzer(this.path, 1024, this.minecraftInterface); // v1: 2048, v2: 1536, v3, v4 : 1024
 		
 		String urlNewWorkItems = "http://" + this.serverAddress + "/api/workitems/getnew";
-		
 		
 		while (!stop)
 		{
@@ -83,8 +82,7 @@ public class DistributedSeedAnalyzer{
 	private void postResultsAndStatistics(WorkItemResults workItemResults, SeedAnalysisResults seedAnalysisResults) throws UnirestException, InterruptedException, ExecutionException
 	{
 		String urlPostWorkItems = "http://" + this.serverAddress + "/api/workitems/post";
-		String urlPostStatistics = "http://" + this.serverAddress + "/api/statistics/poststatistics";
-		
+
 		if (workItemResults.FilteredSeeds.size() > 0)
 		{
 			AmidstLogger.info("Posting " + workItemResults.FilteredSeeds.size() + " new results.");
@@ -128,45 +126,6 @@ public class DistributedSeedAnalyzer{
 		{
 			AmidstLogger.warn("HTTP POST error : " + response.getStatus() + " " + response.getStatusText());
 		}
-		
-		/*
-		futureResponse = Unirest.post(urlPostStatistics)
-		   .header("accept", "application/json")
-		   .header("Content-Type", "application/json")
-		   .body(seedAnalysisResults.Statistics)
-		   .asJsonAsync(new Callback<JsonNode>()
-		   {
-			@Override
-			public void failed(UnirestException arg0)
-			{
-				Log.w("HTTP POST error : " + arg0.getMessage());
-			}
-			
-			@Override
-			public void completed(HttpResponse<JsonNode> arg0)
-			{
-				Log.i("HTTP POST completed (statistiques)");
-			}
-			
-			@Override
-			public void cancelled()
-			{
-				Log.w("HTTP POST canceled (statistics)");
-			}
-		});
-		
-		response = futureResponse.get();*/
-		/*
-		response = Unirest.post(urlPostStatistics)
-				   .header("accept", "application/json")
-				   .header("Content-Type", "application/json")
-				   .body(seedAnalysisResults.Statistics)
-				   .asJson();
-		
-		if (response.getStatus() != 204)
-		{
-			AmidstLogger.warn("HTTP POST error : " + response.getStatus() + " " + response.getStatusText());
-		}*/
 	}
 
 	private void assignClientId(SeedAnalysisResults seedAnalysisResults)

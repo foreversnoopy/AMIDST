@@ -23,6 +23,7 @@ import amidst.mojangapi.world.biome.*;
 import amidst.mojangapi.world.coordinates.CoordinatesInWorld;
 import amidst.mojangapi.world.versionfeatures.*;
 import amidst.seedanalyzer.filters.AllBiomeGroupsFilter;
+import amidst.seedanalyzer.filters.AllBiomeGroupsWithRareBiomes;
 import amidst.seedanalyzer.filters.BiomeAreaFilter;
 import amidst.seedanalyzer.filters.BiomeFilter;
 import amidst.seedanalyzer.filters.Filter;
@@ -110,97 +111,125 @@ public class SeedAnalyzer {
 
 		filters.put(filter.getId(), filter);
 		
-		filter = new SpecialBiomesFilter(-24, namedBiomes); // v1 and v2 : -20, v3 : -24
+		filter = new SpecialBiomesFilter(-23); // v1 and v2 : -20, v3 : -24, v4 : -23
 		filters.put(filter.getId(), filter);
 
 		filter = new AllBiomeGroupsFilter(namedBiomes);
 		filters.put(filter.getId(), filter);
 		
-		//Added in v3, id #4
-		filter = new NumberOfBiomeGroupsFilter(namedBiomes);
+		// Added in v3, id #4
+		filter = new NumberOfBiomeGroupsFilter();
+		filters.put(filter.getId(), filter);
+		
+		// Added in v4, id #5
+		filter = new AllBiomeGroupsWithRareBiomes();
 		filters.put(filter.getId(), filter);
 		
 		ArrayList<Biome> biomesAllForestTypes = new ArrayList<Biome>();
-
-		biomesAllForestTypes.addAll(namedBiomes.biomesBirchForest.getBiomes());
-		biomesAllForestTypes.addAll(namedBiomes.biomesForest.getBiomes());
-		biomesAllForestTypes.addAll(namedBiomes.biomesRoofedForest.getBiomes());
-		biomesAllForestTypes.addAll(namedBiomes.biomesTaiga.getBiomes());
-		biomesAllForestTypes.addAll(namedBiomes.biomesMegaTaiga.getBiomes());
-
-		filter = new BiomeAreaFilter(100, biomesAllForestTypes, 80); // v1 and v2 : 60, v3 :  80
+		
+		biomesAllForestTypes.addAll(BiomeGroup.biomesBirchForest.getBiomes());
+		biomesAllForestTypes.addAll(BiomeGroup.biomesForest.getBiomes());
+		biomesAllForestTypes.addAll(BiomeGroup.biomesRoofedForest.getBiomes());
+		biomesAllForestTypes.addAll(BiomeGroup.biomesTaiga.getBiomes());
+		biomesAllForestTypes.addAll(BiomeGroup.biomesMegaTaiga.getBiomes());
+		
+		filter = new BiomeAreaFilter(100, biomesAllForestTypes, 80); // v1 and v2 : 60, v3 : 80, v4 : 80
 		filters.put(filter.getId(), filter);
 
 		ArrayList<Biome> biomesArid = new ArrayList<Biome>();
-
-		biomesArid.addAll(namedBiomes.biomesBeach.getBiomes());
-		biomesArid.addAll(namedBiomes.biomesDesert.getBiomes());
-		biomesArid.addAll(namedBiomes.biomesMesa.getBiomes());
-
-		filter = new BiomeAreaFilter(110, biomesArid, 80); // v1 : 50, v2 : 55, v3 :  80
+		
+		biomesArid.addAll(BiomeGroup.biomesBeach.getBiomes());
+		biomesArid.addAll(BiomeGroup.biomesDesert.getBiomes());
+		biomesArid.addAll(BiomeGroup.biomesMesa.getBiomes());
+		
+		filter = new BiomeAreaFilter(110, biomesArid, 80); // v1 : 50, v2 : 55, v3 : 80, v4 : 80
 		filters.put(filter.getId(), filter);
 
 		ArrayList<Biome> biomesHills = new ArrayList<Biome>();
-
-		biomesHills.addAll(namedBiomes.biomesColl.stream().filter(b -> b.getName().contains("Hills")).collect(Collectors.toList()));
-
-		filter = new BiomeAreaFilter(120, biomesHills, 52); // v1 : 30, v2 : 40, v3 : 52
+		
+		biomesHills.addAll(Biome.biomeMap.values().stream().filter(b -> b.name.contains("Hills")).collect(Collectors.toList()));
+		
+		filter = new BiomeAreaFilter(120, biomesHills, 52); // v1 : 30, v2 : 40, v3 : 52, v4 : 52
 		filters.put(filter.getId(), filter);
 		
 		
-		filter = new BiomeAreaFilter(1000, namedBiomes.biomesBeach.getBiomes(), 9.75); // v1 : 10, v2 : 8, v3 : 9.75
+		filter = new BiomeAreaFilter(1000, BiomeGroup.biomesBeach.getBiomes(), 9.75); // v1 : 10, v2 : 8, v3 : 9.75, v4 : 9.75
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(2000, namedBiomes.biomesBirchForest.getBiomes(), 32); // v1 : 15, v2 : 20, v3 : 32
+		filter = new BiomeAreaFilter(2000, BiomeGroup.biomesBirchForest.getBiomes(), 33); // v1 : 15, v2 : 20, v3 : 32, v4 : 33
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(3000, namedBiomes.biomesDesert.getBiomes(), 68); // v1 : 40, v2 : 50, v3 : 68
+		filter = new BiomeAreaFilter(3000, BiomeGroup.biomesDesert.getBiomes(), 68); // v1 : 40, v2 : 50, v3 : 68, v4 : 68
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(4000, namedBiomes.biomesExtremeHills.getBiomes(), 45); // v1 : 25, v2 : 30, v3 : 45
+		filter = new BiomeAreaFilter(4000, BiomeGroup.biomesExtremeHills.getBiomes(), 45); // v1 : 25, v2 : 30, v3 : 45, v4 : 45
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(5000, namedBiomes.biomesForest.getBiomes(), 50); // v1 : 40, v2 : 35, v3 : 50
+		filter = new BiomeAreaFilter(5000, BiomeGroup.biomesForest.getBiomes(), 50); // v1 : 40, v2 : 35, v3 : 50, v4 : 50
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(6000, namedBiomes.biomesIce.getBiomes(), 82); // v1 : 40, v2 : 60, v3 : 82
+		// Added in v4
+		filter = new BiomeFilter(5100, Biome.flowerForest, 6); // v4 : 6
 		filters.put(filter.getId(), filter);
 		
-		// Will be added in v4
-		// filter = new BiomeFilter(6001, Biome.icePlainsSpikes, 7);
-		// filters.put(filter.getId(), filter);
-		
-		filter = new BiomeAreaFilter(7000, namedBiomes.biomesJungle.getBiomes(), 70); // v1 : 20, v2 : 35, v3 : 70
+		filter = new BiomeAreaFilter(6000, BiomeGroup.biomesIce.getBiomes(), 83); // v1 : 40, v2 : 60, v3 : 82, v4 : 83
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(8000, namedBiomes.biomesMegaTaiga.getBiomes(), 60); // v1 : 20, v2 : 30, v3 : 60
+		// Added in v4
+		filter = new BiomeFilter(6100, Biome.icePlainsSpikes, 6.5); // v4 : 6.5
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(9000, namedBiomes.biomesMesa.getBiomes(), 68); // v1 : 20, v2 : 35, v3 : 68
+		filter = new BiomeAreaFilter(7000, BiomeGroup.biomesJungle.getBiomes(), 70); // v1 : 20, v2 : 35, v3 : 70, v4 : 70
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(10000, namedBiomes.biomesMushroomIsland.getBiomes(), 6); // v1 and v2 : 2, v3 : 6
+		filter = new BiomeAreaFilter(8000, BiomeGroup.biomesMegaTaiga.getBiomes(), 60); // v1 : 20, v2 : 30, v3 : 60, v4 : 60
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(11000, namedBiomes.biomesOcean.getBiomes(), 93); // v1 : 80, v2 : 85, v3 : 93
+		// Added in v4
+		filter = new BiomeFilter(8100, Biome.megaSpruceTaigaHills, 5); // v4 : 5
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(12000, namedBiomes.biomesPlains.getBiomes(), 36); // v1 : 25, v2 : 25, v3 : 36
+		filter = new BiomeAreaFilter(9000, BiomeGroup.biomesMesa.getBiomes(), 68); // v1 : 20, v2 : 35, v3 : 68, v4 : 68
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(13000, namedBiomes.biomesRiver.getBiomes(), 6.5); // v1 : 10, v2 : 5.7, v3 : 6.5
+		// Added in v4
+		filter = new BiomeFilter(9100, Biome.mesaBryce, 4.5); // v4 : 4.5
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(14000, namedBiomes.biomesRoofedForest.getBiomes(), 23); // v1 : 15, v2 : 14, v3 : 23
+		filter = new BiomeAreaFilter(10000, BiomeGroup.biomesMushroomIsland.getBiomes(), 6); // v1 and v2 : 2, v3 : 6, v4 : 6
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(15000, namedBiomes.biomesSavanna.getBiomes(), 49); // v1 : 25, v2 : 34, v3 : 49
+		filter = new BiomeAreaFilter(11000, BiomeGroup.biomesOcean.getBiomes(), 94); // v1 : 80, v2 : 85, v3 : 93, v4 : 94
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(16000, namedBiomes.biomesSwampland.getBiomes(), 33); // v1 : 15, v2 : 20, v3 : 33
+		filter = new BiomeAreaFilter(12000, BiomeGroup.biomesPlains.getBiomes(), 36); // v1 : 25, v2 : 25, v3 : 36, v4 : 36
 		filters.put(filter.getId(), filter);
 		
-		filter = new BiomeAreaFilter(17000, namedBiomes.biomesTaiga.getBiomes(), 45); // v1 : 20, v2 : 30, v3 : 45
+		// Added in v4
+		filter = new BiomeFilter(12100, Biome.sunflowerPlains, 7.5); // v4 : 7.5
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(13000, BiomeGroup.biomesRiver.getBiomes(), 6.5); // v1 : 10, v2 : 5.7, v3 : 6.5, v4 : 6.5
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(14000, BiomeGroup.biomesRoofedForest.getBiomes(), 24); // v1 : 15, v2 : 14, v3 : 23, v4 : 24
+		filters.put(filter.getId(), filter);
+		
+		// Added in v4
+		filter = new BiomeFilter(14100, Biome.roofedForestM, 4.5); // v4 : 4.5
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(15000, BiomeGroup.biomesSavanna.getBiomes(), 49); // v1 : 25, v2 : 34, v3 : 49, v4 : 49
+		filters.put(filter.getId(), filter);
+		
+		// Added in v4
+		filter = new BiomeFilter(15100, Biome.savannaPlateauM, 5.5); // v4 : 5.5
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(16000, BiomeGroup.biomesSwampland.getBiomes(), 33); // v1 : 15, v2 : 20, v3 : 33, v4 : 33
+		filters.put(filter.getId(), filter);
+		
+		filter = new BiomeAreaFilter(17000, BiomeGroup.biomesTaiga.getBiomes(), 45); // v1 : 20, v2 : 30, v3 : 45, v5 : 45
 		filters.put(filter.getId(), filter);
 	}
 
