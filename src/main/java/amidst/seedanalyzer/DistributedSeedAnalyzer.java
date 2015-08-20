@@ -5,11 +5,15 @@ import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.async.Callback;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.request.body.Body;
 
 import amidst.logging.AmidstLogger;
 import amidst.mojangapi.minecraftinterface.MinecraftInterface;
@@ -35,10 +39,42 @@ public class DistributedSeedAnalyzer{
 		Unirest.setObjectMapper(new JsonDateObjectMapper());
 	}
 
-	public void analyzeSeeds() throws UnirestException, IOException, InterruptedException, UnknownBiomeIdException
+	public void analyzeSeeds() throws UnirestException, IOException, InterruptedException, UnknownBiomeIdException, JSONException
 	{
 		SeedAnalyzer seedAnalyser = new SeedAnalyzer(this.path, 1024, this.minecraftInterface); // v1: 2048, v2: 1536, v3, v4 : 1024
 		
+		if (this.serverAddress.toLowerCase().contains("filterresults"))
+		{
+			analyzeSeedsFilterResults(seedAnalyser);
+		}
+		else
+		{
+			analyzeSeedsNewWorkItems(seedAnalyser);
+		}
+		
+		close();
+	}
+
+	private void analyzeSeedsFilterResults(SeedAnalyzer seedAnalyser) throws UnirestException, JSONException, IOException
+	{
+		String urlFilterResults = "http://" + this.serverAddress;
+		
+		HttpResponse<JsonNode> filterResults = Unirest.get(urlFilterResults).asJson();
+		
+		JSONArray array = filterResults.getBody().getArray();
+		
+		long[] seeds = new long[array.length()];
+		
+		for (int i = 0; i < array.length(); i++)
+		{
+			seeds[i] = (long)array.getJSONObject(i).get("SeedId");
+		}
+		
+		seedAnalyser.analyzeSeeds(seeds);
+	}
+
+	private void analyzeSeedsNewWorkItems(SeedAnalyzer seedAnalyser) throws InterruptedException 
+	{
 		String urlNewWorkItems = "http://" + this.serverAddress + "/api/workitems/getnew/" + CLIENT_ID;
 		
 		while (!stop)
@@ -77,8 +113,6 @@ public class DistributedSeedAnalyzer{
 				Thread.sleep(5000);
 			}
 		}
-		
-		close();
 	}
 
 	private void postResultsAndStatistics(WorkItemResults workItemResults, SeedAnalysisResults seedAnalysisResults) throws UnirestException, InterruptedException, ExecutionException

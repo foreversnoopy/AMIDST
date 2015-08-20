@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import amidst.logging.AmidstLogger;
 import amidst.mojangapi.minecraftinterface.MinecraftInterface;
@@ -236,19 +237,38 @@ public class SeedAnalyzer {
 		filters.put(filter.getId(), filter);
 	}
 
-	public SeedAnalysisResults analyzeSeeds(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException {
+	public SeedAnalysisResults analyzeSeeds(long startSeed, long endSeed) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException
+	{
+		long[] seeds = LongStream.rangeClosed(startSeed, endSeed).toArray();
+		
+		return analyzeSeeds(seeds);
+	}
+	
+	public SeedAnalysisResults analyzeSeeds(long[] seeds) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException
+	{
+		SeedAnalysisResults seedAnalysisResults = new SeedAnalysisResults();
+		
+		if (seeds.length > 0)
+		{
+			analyzeSeeds(seeds, seedAnalysisResults);
+		}
+		
+		return seedAnalysisResults;
+	}
+
+	private void analyzeSeeds(long[] seeds, SeedAnalysisResults seedAnalysisResults) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException, FileNotFoundException, UnsupportedEncodingException, {
 		HashMap<Integer, ArrayList<FilterResults>> allResults = new HashMap<Integer, ArrayList<FilterResults>>();
 
-		AmidstLogger.info("New work item: " + startSeed + " to " + endSeed +".");
+		AmidstLogger.info("New work item: " + seeds[0] + " to " + seeds[seeds.length - 1] + ".");
 
 		Stopwatch stopwatch = new Stopwatch();
-
-		long analyzedCount = 0;
-
-		long seed = startSeed;
-
-		while (!stop && seed <= endSeed)
+		
+		int analyzedCount = 0;
+		
+		while (!stop && analyzedCount < seeds.length)
 		{
+			long seed = seeds[analyzedCount];
+			
 			Collection<FilterResults> results = analyzeSeed(seed, this.radius, filters.values());
 
 			addResults(results, allResults, filters);
@@ -265,12 +285,9 @@ public class SeedAnalyzer {
 		Collection<FilterResults> filteredResults = getFilteredResults(allResults, filters);
 
 		reportRunCompleted(analyzedCount, stopwatch);
-
-		SeedAnalysisResults seedAnalysisResults = new SeedAnalysisResults();
+		
 		seedAnalysisResults.FilteredSeeds = filteredResults;
 		seedAnalysisResults.Statistics = statistics;
-
-		return seedAnalysisResults;
 	}
 
 	private Collection<FilterStatistics> compileStatistics(HashMap<Integer, ArrayList<FilterResults>> allResults)
@@ -478,11 +495,11 @@ public class SeedAnalyzer {
 		}
 	}
 	
-	private void reportRunCompleted(long analyzedCount, Stopwatch stopwatch)
+	private void reportRunCompleted(int analyzedCount, Stopwatch stopwatch)
 	{
 		double elapsedTime = Math.round(stopwatch.elapsedTime() * 10d) / 10d;
 
-		long numberOfSeeds = Math.abs(analyzedCount);
+		long numberOfSeeds = Math.abs((long)analyzedCount);
 		
 		double rate = numberOfSeeds / elapsedTime;
 		
