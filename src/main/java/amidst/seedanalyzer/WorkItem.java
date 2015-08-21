@@ -10,7 +10,7 @@ public class WorkItem
 
     public int ClientId;
 
-    public Date AssignedDate;
+    //public Date AssignedDate;
 
-    public Date CompletedDate;
+    //public Date CompletedDate;
 }
