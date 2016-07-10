@@ -256,7 +256,7 @@ public class SeedAnalyzer {
 		return seedAnalysisResults;
 	}
 
-	private void analyzeSeeds(long[] seeds, SeedAnalysisResults seedAnalysisResults) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException, FileNotFoundException, UnsupportedEncodingException, {
+	private void analyzeSeeds(long[] seeds, SeedAnalysisResults seedAnalysisResults) throws IOException, MinecraftInterfaceException, UnknownBiomeIdException, FileNotFoundException, UnsupportedEncodingException {
 		HashMap<Integer, ArrayList<FilterResults>> allResults = new HashMap<Integer, ArrayList<FilterResults>>();
 
 		AmidstLogger.info("New work item: " + seeds[0] + " to " + seeds[seeds.length - 1] + ".");

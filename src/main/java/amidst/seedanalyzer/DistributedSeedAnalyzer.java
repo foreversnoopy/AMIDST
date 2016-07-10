@@ -17,6 +17,7 @@ import com.mashape.unirest.request.body.Body;
 
 import amidst.logging.AmidstLogger;
 import amidst.mojangapi.minecraftinterface.MinecraftInterface;
+import amidst.mojangapi.minecraftinterface.MinecraftInterfaceException;
 import amidst.mojangapi.world.biome.UnknownBiomeIdException;
 import amidst.seedanalyzer.filters.FilterStatistics;
 
@@ -39,7 +40,7 @@ public class DistributedSeedAnalyzer{
 		Unirest.setObjectMapper(new JsonDateObjectMapper());
 	}
 
-	public void analyzeSeeds() throws UnirestException, IOException, InterruptedException, UnknownBiomeIdException, JSONException
+	public void analyzeSeeds() throws UnirestException, IOException, InterruptedException, MinecraftInterfaceException, UnknownBiomeIdException, JSONException
 	{
 		SeedAnalyzer seedAnalyser = new SeedAnalyzer(this.path, 1024, this.minecraftInterface); // v1: 2048, v2: 1536, v3, v4 : 1024
 		
@@ -55,7 +56,7 @@ public class DistributedSeedAnalyzer{
 		close();
 	}
 
-	private void analyzeSeedsFilterResults(SeedAnalyzer seedAnalyser) throws UnirestException, JSONException, IOException
+	private void analyzeSeedsFilterResults(SeedAnalyzer seedAnalyser) throws UnirestException, JSONException, IOException, MinecraftInterfaceException, UnknownBiomeIdException
 	{
 		String urlFilterResults = "http://" + this.serverAddress;
 		
