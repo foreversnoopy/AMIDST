@@ -33,11 +33,6 @@ import amidst.seedanalyzer.filters.NumberOfBiomeGroupsFilter;
 import amidst.seedanalyzer.filters.NumberOfBiomesFilter;
 import amidst.seedanalyzer.filters.RegularBiomesFilter;
 import amidst.seedanalyzer.filters.SpecialBiomesFilter;
-import ar.com.hjg.pngj.ImageInfo;
-import ar.com.hjg.pngj.ImageLineHelper;
-import ar.com.hjg.pngj.ImageLineInt;
-import ar.com.hjg.pngj.PngWriter;
-import ar.com.hjg.pngj.chunks.PngChunkTextVar;
 
 public class SeedAnalyzer {
 	private NamedBiomeList namedBiomes;
@@ -45,12 +40,13 @@ public class SeedAnalyzer {
 	private VersionFeatures versionFeatures;
 
 	private HashMap<Integer, Filter> filters;
-	private HashMap<Integer, String> filterSavePaths = new HashMap<Integer, String>();
-
+	
 	private int radius;
 	private boolean saveResults;
 
 	private boolean stop;
+
+	private ResultsRepository resultsRepository;
 
 	public SeedAnalyzer(String path, int radius, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException {
 		this.versionFeatures = createVersionFeaturesBuilder().create(minecraftInterface.getRecognisedVersion());
@@ -63,17 +59,7 @@ public class SeedAnalyzer {
 
 		if (this.saveResults)
 		{
-			for(Filter filter : filters.values())
-			{
-				File d = new File(path + File.separator + radius + File.separator + filter.getId() + File.separator);
-
-				if (!d.exists())
-				{
-					d.mkdirs();
-				}
-
-				this.filterSavePaths.put(filter.getId(), d.getAbsolutePath());
-			}
+			this.resultsRepository = new ResultsRepository(path + File.separator + radius, this.filters, this.namedBiomes);
 		}
 	}
 
@@ -290,42 +276,6 @@ public class SeedAnalyzer {
 		seedAnalysisResults.Statistics = statistics;
 	}
 
-	private Collection<FilterStatistics> compileStatistics(HashMap<Integer, ArrayList<FilterResults>> allResults)
-	{
-		HashMap<Integer, FilterStatistics> statisticsByFilter = new HashMap<Integer, FilterStatistics>();
-
-		for(Filter filter : filters.values())
-		{
-			Collection<FilterResults> resultsInFilter = allResults.get(filter.getId());
-
-			FilterStatistics stats = new FilterStatistics();
-			stats.FilterId = filter.getId();
-
-			double min = 999, max = -999, total = 0;
-
-			for(FilterResults result : resultsInFilter)
-			{
-				min = Math.min(min, result.Value);
-
-				if (result.Value > max)
-				{
-					max = result.Value;
-					stats.MaxValue = result.Value;
-					stats.MaxSeed = result.SeedId;
-				}
-
-				total += result.Value;
-			}
-
-			stats.MinValue = min;
-			stats.AvgValue = total / (double)resultsInFilter.size();
-
-			statisticsByFilter.put(filter.getId(), stats);
-		}
-
-		return statisticsByFilter.values();
-	}
-
 	public Collection<FilterResults> analyzeSeed(long seed, int radius, Collection<Filter> filters)	throws FileNotFoundException, UnsupportedEncodingException, IOException, MinecraftInterfaceException, UnknownBiomeIdException
 	{
 		ArrayList<FilterResults> results = new ArrayList<FilterResults>();
@@ -360,9 +310,9 @@ public class SeedAnalyzer {
 
 				if (this.saveResults)
 				{
-					saveBiomeAnalysis(seed, filter.getId(), biomesAreaPercentage);
+					this.resultsRepository.saveBiomeAnalysis(seed, filter.getId(), biomesAreaPercentage);
 					
-					saveScreenshot(seed, filter.getId(), biomeData, radius);
+					this.resultsRepository.saveScreenshot(seed, filter.getId(), biomeData, radius);
 				}
 			}
 			
@@ -395,60 +345,6 @@ public class SeedAnalyzer {
 		
 		return biomesAreaPercentage;
 	}
-
-	private void saveBiomeAnalysis(long seed, int filterId, double[] biomesAreaPercentage) throws IOException
-	{
-		File file = new File(this.filterSavePaths.get(filterId) + File.separator + seed + ".txt");
-
-		PrintWriter writer = new PrintWriter(file, "UTF-8");
-		
-		for(Biome b : namedBiomes.biomesColl)
-		{
-			if (b != null)
-			{
-				writer.printf("%30s\t\t%3.2f%n", b.getName(), (float)biomesAreaPercentage[b.getId()]);
-			}
-		}
-		
-		writer.close();
-	}
-
-	private void saveScreenshot(long seed, int filterId, int[] biomeData, int radius) throws FileNotFoundException, IOException, UnknownBiomeIdException
-	{
-		FileOutputStream outputStream = new FileOutputStream(this.filterSavePaths.get(filterId) + File.separator + seed + ".png");
-		
-		MinecraftMapRgbImage image = new MinecraftMapRgbImage(biomeData, radius);
-		
-		ImageInfo imageInfo = new ImageInfo(radius / 2, radius / 2, 8, false); // 8 bits per channel, no alpha
-		
-        PngWriter png = new PngWriter(outputStream, imageInfo);
-        
-        // add some optional metadata (chunks)
-        png.getMetadata().setDpi(100.0);
-        png.getMetadata().setTimeNow(0); // 0 seconds fron now = now
-        png.getMetadata().setText(PngChunkTextVar.KEY_Title, "Seed " + seed);
-
-        for (int row = 0; row < png.imgInfo.rows; row++)
-        {
-        	ImageLineInt line = new ImageLineInt(imageInfo);
-        	
-        	for (int col = 0; col < imageInfo.cols; col++)
-            {
-                ImageLineHelper.setPixelRGB8(line, col, image.getRgb888Pixel(col, row));
-            }
-        	
-            png.writeRow(line);
-        }
-        
-        try
-		{
-			png.end();
-		}
-		finally
-		{
-			outputStream.close();
-		}
-	}
 	
 	private void addResults(Collection<FilterResults> results,
 			HashMap<Integer, ArrayList<FilterResults>> allResults, HashMap<Integer, Filter> filters)
@@ -470,6 +366,42 @@ public class SeedAnalyzer {
 			
 			resultsInFilter.add(result);
 		}
+	}
+	
+	private Collection<FilterStatistics> compileStatistics(HashMap<Integer, ArrayList<FilterResults>> allResults)
+	{
+		HashMap<Integer, FilterStatistics> statisticsByFilter = new HashMap<Integer, FilterStatistics>();
+		
+		for(Filter filter : filters.values())
+		{
+			Collection<FilterResults> resultsInFilter = allResults.get(filter.getId());
+			
+			FilterStatistics stats = new FilterStatistics();
+			stats.FilterId = filter.getId();
+			
+			double min = 999, max = -999, total = 0;
+			
+			for(FilterResults result : resultsInFilter)
+			{
+				min = Math.min(min, result.Value);
+				
+				if (result.Value > max)
+				{
+					max = result.Value;
+					stats.MaxValue = result.Value;
+					stats.MaxSeed = result.SeedId;
+				}
+				
+				total += result.Value;
+			}
+			
+			stats.MinValue = min;
+			stats.AvgValue = total / (double)resultsInFilter.size();
+			
+			statisticsByFilter.put(filter.getId(), stats);
+		}
+		
+		return statisticsByFilter.values();
 	}
 	
 	private Collection<FilterResults> getFilteredResults(HashMap<Integer, ArrayList<FilterResults>> allResults,
