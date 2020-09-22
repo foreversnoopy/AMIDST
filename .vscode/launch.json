@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug (Launch) - Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Amidst",
+            "request": "launch",
+            "mainClass": "amidst.Amidst",
+            "projectName": "amidst"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-SeedAnalyzer",
+            "request": "launch",
+            "mainClass": "amidst.Amidst",
+            "projectName": "amidst",
+            "args": "-seedanalyzer -radius 1024 -history '/home/maxlaf/seeds/' -mcpath '/mnt/c/Users/Max/Application Data/.minecraft/' -mcjar '/mnt/c/Users/Max/Application Data/.minecraft/versions/1.8.8/1.8.8.jar' -mcjson '/mnt/c/Users/Max/Application Data/.minecraft/versions/1.8.8/1.8.8.json'"
+        }
+    ]
+}
