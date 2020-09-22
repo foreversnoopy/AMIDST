@@ -15,7 +15,8 @@
             "name": "Debug (Launch)-Amidst",
             "request": "launch",
             "mainClass": "amidst.Amidst",
-            "projectName": "amidst"
+            "projectName": "amidst",
+            "args": "-mcpath '/mnt/c/Users/Max/Application Data/.minecraft/'"
         },
         {
             "type": "java",
