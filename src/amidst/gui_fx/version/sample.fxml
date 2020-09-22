@@ -1,7 +1,0 @@
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.control.Label?>
-<GridPane fx:controller="amidst.gui_fx.version.VersionSelectComponent"
-          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10">
-
-    <Label text ="Please select a Minecraft version:" GridPane.rowIndex="1" fx:id="selectLabel"/>
-</GridPane>
