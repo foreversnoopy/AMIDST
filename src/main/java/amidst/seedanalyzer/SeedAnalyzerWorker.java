@@ -4,18 +4,18 @@ import amidst.logging.AmidstLogger;
 import amidst.mojangapi.minecraftinterface.MinecraftInterface;
 import amidst.mojangapi.world.biome.UnknownBiomeIdException;
 
-public class RunnableSeedAnalyzer extends SeedAnalyzer implements ThreadedSeedAnalyzer {
+public class SeedAnalyzerWorker extends SeedAnalyzer implements ThreadedSeedAnalyzer {
 	private long startSeed = Long.MIN_VALUE;
 	private long endSeed = Long.MAX_VALUE;
 
 	private boolean isStopped;
 
-	public RunnableSeedAnalyzer(String path, int radius, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException
+	public SeedAnalyzerWorker(String path, int radius, MinecraftInterface minecraftInterface) throws UnknownBiomeIdException
 	{
 		super(path, radius, minecraftInterface);
 	}
 	
-	public RunnableSeedAnalyzer(String path, long startSeed, long endSeed, int radius, MinecraftInterface minecraftInterface)
+	public SeedAnalyzerWorker(String path, long startSeed, long endSeed, int radius, MinecraftInterface minecraftInterface)
 			throws UnknownBiomeIdException
 	{
 		super(path, radius, minecraftInterface);

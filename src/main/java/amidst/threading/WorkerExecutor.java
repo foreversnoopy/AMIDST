@@ -150,7 +150,7 @@ public class WorkerExecutor {
 		runInEDT(() -> onProgress.accept(data));
 	}
 
-	private void runInEDT(Runnable runnable) {
+	public void runInEDT(Runnable runnable) {
 		SwingUtilities.invokeLater(runnable);
 	}
 

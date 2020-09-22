@@ -20,6 +20,7 @@ import amidst.gui.main.viewer.PerViewerFacadeInjector;
 import amidst.gui.main.viewer.ViewerFacade;
 import amidst.gui.main.viewer.Zoom;
 import amidst.gui.profileselect.ProfileSelectWindow;
+import amidst.logging.AmidstLogger;
 import amidst.mojangapi.LauncherProfileRunner;
 import amidst.mojangapi.RunningLauncherProfile;
 import amidst.mojangapi.file.DotMinecraftDirectoryNotFoundException;
@@ -28,10 +29,15 @@ import amidst.mojangapi.file.MinecraftInstallation;
 import amidst.mojangapi.file.PlayerInformationCache;
 import amidst.mojangapi.file.PlayerInformationProvider;
 import amidst.mojangapi.file.VersionListProvider;
+import amidst.mojangapi.minecraftinterface.MinecraftInterface;
 import amidst.mojangapi.world.SeedHistoryLogger;
 import amidst.mojangapi.world.World;
 import amidst.mojangapi.world.WorldBuilder;
+import amidst.mojangapi.world.WorldSeed;
 import amidst.parsing.FormatException;
+import amidst.seedanalyzer.DistributedSeedAnalyzerWorker;
+import amidst.seedanalyzer.SeedAnalyzerWorker;
+import amidst.seedanalyzer.ThreadedSeedAnalyzer;
 import amidst.settings.biomeprofile.BiomeProfileDirectory;
 import amidst.threading.ThreadMaster;
 
@@ -53,6 +59,8 @@ public class PerApplicationInjector {
 	private final FragmentManager fragmentManager;
 	private final BiomeSelection biomeSelection;
 	private final Application application;
+
+	private final CommandLineParameters parameters;
 
 	@CalledOnlyBy(AmidstThread.EDT)
 	public PerApplicationInjector(CommandLineParameters parameters, AmidstMetaData metadata, AmidstSettings settings)
@@ -76,7 +84,19 @@ public class PerApplicationInjector {
 		this.zoom = new Zoom(settings.maxZoom);
 		this.fragmentManager = new FragmentManager(layerBuilder.getConstructors(), layerBuilder.getNumberOfLayers());
 		this.biomeSelection = new BiomeSelection();
-		this.application = new Application(
+
+		this.parameters = parameters;
+		if (parameters.seedAnalyzer) {
+			this.application = new Application(
+				preferredLauncherProfile,
+				launcherProfileRunner,
+				this::createNoisyUpdatePrompt,
+				this::createSilentUpdatePrompt,
+				this::startSeedAnalyzer,
+				this::createProfileSelectWindow,
+				this::createLicenseWindow);
+		} else {
+			this.application = new Application(
 				preferredLauncherProfile,
 				launcherProfileRunner,
 				this::createNoisyUpdatePrompt,
@@ -84,6 +104,7 @@ public class PerApplicationInjector {
 				this::createMainWindow,
 				this::createProfileSelectWindow,
 				this::createLicenseWindow);
+		}
 	}
 
 	@CalledOnlyBy(AmidstThread.EDT)
@@ -143,5 +164,61 @@ public class PerApplicationInjector {
 	@CalledOnlyBy(AmidstThread.EDT)
 	public Application getApplication() {
 		return application;
+	}
+
+	private MainWindow startSeedAnalyzer(RunningLauncherProfile runningLauncherProfile) {
+		final ThreadedSeedAnalyzer seedAnalyzer;
+
+		try {
+			MinecraftInterface minecraftInterface = runningLauncherProfile.getMinecraftInterface();
+
+			if (parameters.distributed != null) {
+				seedAnalyzer = new DistributedSeedAnalyzerWorker(parameters.seedHistoryFile.toAbsolutePath().toString(),
+						parameters.distributed, minecraftInterface);
+			} else if (parameters.radius > 0) {
+				if (parameters.initialSeed == null) {
+					parameters.initialSeed = WorldSeed.fromSaveGame(0);
+				}
+
+				seedAnalyzer = new SeedAnalyzerWorker(parameters.seedHistoryFile.toAbsolutePath().toString(),
+						parameters.initialSeed.getLong(), parameters.initialSeed.getLong() + 1000, parameters.radius,
+						minecraftInterface);
+			} else {
+				throw new Exception("Please specify -radius <radius> as an argument.");
+			}
+
+			if (seedAnalyzer != null) {
+				threadMaster.getWorkerExecutor().run(seedAnalyzer);
+				threadMaster.getWorkerExecutor().runInEDT(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							while (System.in.read() == 0) {
+								Thread.sleep(1000);
+							}
+
+							seedAnalyzer.stop();
+
+							System.out.println("Stop signal sent. Please wait for the end of the current work item. You may terminate the program now but you will lose some progress in your analysis.");
+
+							while (!seedAnalyzer.isStopped()) {
+								Thread.sleep(100);
+							}
+						} catch (IOException | InterruptedException e) {
+							AmidstLogger.error(e);
+						}
+
+						getApplication().exitGracefully();
+					}
+				});
+
+				return null;
+			}
+		}
+		catch (Exception ex) {
+			AmidstLogger.crash(ex);
+		}
+
+		return null;
 	}
 }

@@ -50,6 +50,10 @@ public class RunningLauncherProfile {
 		return initialWorldOptions;
 	}
 
+	public MinecraftInterface getMinecraftInterface() {
+		return minecraftInterface;
+	}
+
 	public RecognisedVersion getRecognisedVersion() {
 		return minecraftInterface.getRecognisedVersion();
 	}

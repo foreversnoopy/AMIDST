@@ -1,6 +1,8 @@
 package amidst.seedanalyzer;
 
-public interface ThreadedSeedAnalyzer extends Runnable
+import amidst.threading.worker.Worker;
+
+public interface ThreadedSeedAnalyzer extends Runnable, Worker
 {
 	public void stop();
 	

@@ -3,7 +3,6 @@ package amidst;
 import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.Optional;
 import java.util.prefs.Preferences;
 
 import javax.swing.SwingUtilities;
@@ -21,11 +20,6 @@ import amidst.logging.AmidstLogger;
 import amidst.logging.AmidstMessageBox;
 import amidst.logging.FileLogger;
 import amidst.mojangapi.file.*;
-import amidst.mojangapi.minecraftinterface.*;
-import amidst.mojangapi.world.WorldSeed;
-import amidst.seedanalyzer.RunnableDistributedSeedAnalyzer;
-import amidst.seedanalyzer.RunnableSeedAnalyzer;
-import amidst.seedanalyzer.ThreadedSeedAnalyzer;
 import amidst.util.OperatingSystemDetector;
 
 @NotThreadSafe
@@ -175,68 +169,14 @@ public class Amidst {
 			AmidstMetaData metadata,
 			AmidstSettings settings) {
 		try {
-			if (parameters.seedAnalyzer && parameters.minecraftJarFile != null) {
-				startSeedAnalyzer(parameters);
-			} else {
-				applyLookAndFeel(settings);
-				new PerApplicationInjector(parameters, metadata, settings).getApplication().run();
-			}
+			applyLookAndFeel(settings);
+			new PerApplicationInjector(parameters, metadata, settings).getApplication().run();
 		} catch (DotMinecraftDirectoryNotFoundException e) {
 			AmidstLogger.warn(e);
 			AmidstMessageBox.displayError("Please install Minecraft",
 					"Amidst is not able to find your '.minecraft' directory, but it requires a working Minecraft installation.");
 		} catch (Exception e) {
 			handleCrash(e, Thread.currentThread());
-		}
-	}
-
-	private static void startSeedAnalyzer(CommandLineParameters parameters)
-			throws Exception {
-		MinecraftInstallation minecraftInstallation = MinecraftInstallation
-			.newLocalMinecraftInstallation(parameters.dotMinecraftDirectory);
-			
-		Optional<LauncherProfile> preferredLauncherProfile = parameters.getInitialLauncherProfile(minecraftInstallation);
-
-		if (preferredLauncherProfile.isPresent()) {
-			MinecraftInterface minecraftInterface = MinecraftInterfaces.fromLocalProfile(preferredLauncherProfile.get());
-
-			ThreadedSeedAnalyzer seedAnalyzer;
-
-			if (parameters.distributed != null) {
-				seedAnalyzer = new RunnableDistributedSeedAnalyzer(
-					parameters.seedHistoryFile.toAbsolutePath().toString(),
-					parameters.distributed,
-					minecraftInterface);
-			}
-			else if (parameters.radius > 0) {
-				if (parameters.initialSeed == null) {
-					parameters.initialSeed = WorldSeed.fromSaveGame(0);
-				}
-
-				seedAnalyzer = new RunnableSeedAnalyzer(
-					parameters.seedHistoryFile.toAbsolutePath().toString(),
-					parameters.initialSeed.getLong(),
-					parameters.initialSeed.getLong() + 1000,
-					parameters.radius,
-					minecraftInterface);
-			}
-			else {
-				throw new Exception("Please specify -radius <radius> as an argument.");
-			}
-
-			new Thread(seedAnalyzer).start();
-
-			while (System.in.read() == 0)
-			{
-				Thread.sleep(1000);
-			}
-
-			seedAnalyzer.stop();
-
-			System.out.println("Stop signal sent. Please wait for the end of the current work item. You may terminate the program now but you will lose some progress in your analysis.");
-		}
-		else {
-			throw new Exception("Launcher profile not found.");
 		}
 	}
 

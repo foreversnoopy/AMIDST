@@ -3,11 +3,11 @@ package amidst.seedanalyzer;
 import amidst.logging.AmidstLogger;
 import amidst.mojangapi.minecraftinterface.MinecraftInterface;
 
-public class RunnableDistributedSeedAnalyzer extends DistributedSeedAnalyzer implements ThreadedSeedAnalyzer
+public class DistributedSeedAnalyzerWorker extends DistributedSeedAnalyzer implements ThreadedSeedAnalyzer
 {
 	private boolean isStopped;
 
-	public RunnableDistributedSeedAnalyzer(String path, String serverAddress, MinecraftInterface minecraftInterface)
+	public DistributedSeedAnalyzerWorker(String path, String serverAddress, MinecraftInterface minecraftInterface)
 	{
 		super(path, serverAddress, minecraftInterface);
 	}
