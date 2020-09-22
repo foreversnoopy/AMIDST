@@ -1,7 +1,5 @@
 package amidst.seedanalyzer;
 
-import java.util.Date;
-
 public class WorkItem
 {
 	public long StartSeed;

@@ -1,9 +1,7 @@
 package amidst.seedanalyzer;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,9 +9,7 @@ import org.json.JSONException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.async.Callback;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import com.mashape.unirest.request.body.Body;
 
 import amidst.logging.AmidstLogger;
 import amidst.mojangapi.minecraftinterface.MinecraftInterface;
